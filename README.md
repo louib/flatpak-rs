@@ -1,5 +1,5 @@
 # flatpak-rs
-The Rust flatpak library.
+The Rust Flatpak library.
 
 ## License
 MIT
