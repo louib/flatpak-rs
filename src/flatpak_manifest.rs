@@ -39,7 +39,8 @@ lazy_static! {
     ];
 }
 
-// See `man flatpak-manifest` for the flatpak manifest specs.
+/// See `man flatpak-manifest` for the flatpak manifest specs.
+/// Main structure for a Flatpak application manifest.
 #[derive(Deserialize, Serialize, Debug, Default)]
 #[serde(rename_all = "kebab-case")]
 #[serde(default)]
@@ -47,24 +48,24 @@ pub struct FlatpakManifest {
     #[serde(skip_serializing)]
     pub format: FlatpakManifestFormat,
 
-    // Name of the application.
+    /// Name of the application.
     #[serde(skip_serializing_if = "String::is_empty")]
     pub app_name: String,
 
-    // A string defining the application id.
-    // Both names (app-id and id) are accepted.
+    /// A string defining the application id.
+    /// Both names (app-id and id) are accepted.
     #[serde(skip_serializing_if = "String::is_empty")]
     pub app_id: String,
     #[serde(skip_serializing_if = "String::is_empty")]
     pub id: String,
 
-    // The branch to use when exporting the application.
-    // If this is unset the defaults come from the default-branch option.
-    //
-    // This key overrides both the default-branch key, and the --default-branch commandline option.
-    // Unless you need a very specific branchname (like for a runtime or an extension) it is recommended
-    // to use the default-branch key instead, because you can then override the default using
-    // --default-branch when building for instance a test build.
+    /// The branch to use when exporting the application.
+    /// If this is unset the defaults come from the default-branch option.
+    ///
+    /// This key overrides both the default-branch key, and the --default-branch commandline option.
+    /// Unless you need a very specific branchname (like for a runtime or an extension) it is recommended
+    /// to use the default-branch key instead, because you can then override the default using
+    /// --default-branch when building for instance a test build.
     #[serde(skip_serializing_if = "String::is_empty")]
     pub branch: String,
 
