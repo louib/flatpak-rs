@@ -1,0 +1,19 @@
+name: rustfmt
+
+on: [push, pull_request]
+
+jobs:
+  rustfmt:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v1
+    - name: printing rust version
+      run: rustc --version
+    - name: printing cargo version
+      run: cargo --version
+    - name: running rustfmt
+      run: find . -name '*.rs' -exec rustfmt {} \;
+    - name: checking for changes
+      run: git diff --exit-code
