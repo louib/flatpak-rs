@@ -6,6 +6,7 @@ use lazy_static::lazy_static;
 use regex::Regex;
 use serde::{Deserialize, Serialize};
 
+#[derive(Clone)]
 #[derive(Deserialize)]
 #[derive(Serialize)]
 #[derive(Debug)]
@@ -43,6 +44,7 @@ lazy_static! {
 
 /// See `man flatpak-manifest` for the flatpak manifest specs.
 /// Main structure for a Flatpak application manifest.
+#[derive(Clone)]
 #[derive(Deserialize)]
 #[derive(Serialize)]
 #[derive(Debug)]
@@ -416,6 +418,7 @@ impl FlatpakManifest {
 
 /// Each module item can be either a path to a module description file,
 /// or an inline module description.
+#[derive(Clone)]
 #[derive(Deserialize)]
 #[derive(Serialize)]
 #[derive(Debug)]
@@ -452,6 +455,7 @@ lazy_static! {
 /// building.
 ///
 /// Modules can be nested, in order to turn related modules on and off with a single key.
+#[derive(Clone)]
 #[derive(Deserialize)]
 #[derive(Serialize)]
 #[derive(Debug)]
@@ -851,6 +855,7 @@ pub const DEFAULT_SOURCE_TYPE: &str = "archive";
 /// Additionally, the sources list can contain a plain string, which is interpreted as the name
 /// of a separate json or yaml file that is read and inserted at this
 /// point. The file can contain a single source, or an array of sources.
+#[derive(Clone)]
 #[derive(Deserialize)]
 #[derive(Serialize)]
 #[derive(Debug)]
@@ -952,6 +957,7 @@ impl FlatpakSource {
     }
 }
 
+#[derive(Clone)]
 #[derive(Deserialize)]
 #[derive(Serialize)]
 #[derive(Debug)]
@@ -1294,6 +1300,7 @@ impl FlatpakSourceDescription {
 
 /// See https://github.com/flathub/flatpak-external-data-checker#changes-to-flatpak-manifests
 /// for the specification
+#[derive(Clone)]
 #[derive(Deserialize)]
 #[derive(Serialize)]
 #[derive(Debug)]
@@ -1322,6 +1329,7 @@ pub struct FlatpakDataCheckerConfig {
 /// directly into the metadata file: autodelete, no-autodownload, subdirectories,
 /// add-ld-path, download-if, enable-if, merge-dirs, subdirectory-suffix, locale-subset,
 /// version, versions. See the flatpak metadata documentation for more information on these.
+#[derive(Clone)]
 #[derive(Deserialize)]
 #[derive(Serialize)]
 #[derive(Debug)]
@@ -1406,6 +1414,7 @@ pub struct FlatpakExtension {
 /// Build options specify the build environment of a module,
 /// and can be specified globally as well as per-module.
 /// Options can also be specified on a per-architecture basis using the arch property.
+#[derive(Clone)]
 #[derive(Deserialize)]
 #[derive(Serialize)]
 #[derive(Debug)]
