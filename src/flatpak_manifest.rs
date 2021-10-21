@@ -868,7 +868,14 @@ pub enum FlatpakSource {
 }
 impl FlatpakSource {
     pub fn get_url(&self) -> Option<String> {
-        None
+        let source_description = match self {
+            FlatpakSource::Path(_) => return None,
+            FlatpakSource::Description(sd) => sd,
+        };
+        match &source_description.url {
+            Some(s) => Some(s.to_string()),
+            None => None,
+        }
     }
     pub fn get_all_mirror_urls(&self) -> Vec<String> {
         let mut response: Vec<String> = vec![];
