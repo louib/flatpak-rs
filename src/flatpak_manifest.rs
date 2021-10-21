@@ -241,33 +241,32 @@ impl FlatpakManifest {
         }
         return self.id.to_string();
     }
-    pub fn load_from_file(path: String) -> Option<FlatpakManifest> {
+    pub fn load_from_file(path: String) -> Result<FlatpakManifest, String> {
         let file_path = path::Path::new(&path);
         if !file_path.is_file() {
-            eprintln!("{} is not a file.", path);
-            return None;
+            return Err(format!("{} is not a file.", path));
         }
 
         if FlatpakManifest::file_path_matches(&file_path.to_str().unwrap()) {
             let manifest_content = match fs::read_to_string(file_path) {
                 Ok(content) => content,
                 Err(e) => {
-                    eprintln!("Could not read file {}: {}!", file_path.to_str().unwrap(), e);
-                    return None;
+                    return Err(format!(
+                        "Could not read file {}: {}!",
+                        file_path.to_str().unwrap(),
+                        e
+                    ))
                 }
             };
-            eprintln!("Parsing Flatpak manifest file {}", &path);
+
             let manifest = match FlatpakManifest::parse(&path, &manifest_content) {
                 Ok(m) => m,
-                Err(e) => {
-                    eprintln!("Failed to parse Flatpak manifest at {}: {}", path, e);
-                    return None;
-                }
+                Err(e) => return Err(format!("Failed to parse Flatpak manifest at {}: {}", path, e)),
             };
-            return Some(manifest);
+
+            return Ok(manifest);
         } else {
-            eprintln!("{} is not a Flatpak manifest.", path);
-            return None;
+            return Err(format!("{} is not a Flatpak manifest.", path));
         }
     }
 
@@ -626,33 +625,30 @@ impl FlatpakModuleDescription {
         false
     }
 
-    pub fn load_from_file(path: String) -> Option<FlatpakModuleDescription> {
+    pub fn load_from_file(path: String) -> Result<FlatpakModuleDescription, String> {
         let file_path = path::Path::new(&path);
         if !file_path.is_file() {
-            eprintln!("{} is not a file.", path);
-            return None;
+            return Err(format!("{} is not a file.", path));
         }
 
         if FlatpakModuleDescription::file_path_matches(&file_path.to_str().unwrap()) {
             let module_content = match fs::read_to_string(file_path) {
                 Ok(content) => content,
                 Err(e) => {
-                    eprintln!("Could not read file {}: {}!", file_path.to_str().unwrap(), e);
-                    return None;
+                    return Err(format!(
+                        "Could not read file {}: {}!",
+                        file_path.to_str().unwrap(),
+                        e
+                    ));
                 }
             };
-            eprintln!("Parsing Flatpak module file {}", &path);
             let module = match FlatpakModuleDescription::parse(&path, &module_content) {
                 Ok(m) => m,
-                Err(e) => {
-                    eprintln!("Failed to parse Flatpak module at {}: {}", path, e);
-                    return None;
-                }
+                Err(e) => return Err(format!("Failed to parse Flatpak module at {}: {}", path, e)),
             };
-            return Some(module);
+            return Ok(module);
         } else {
-            eprintln!("{} is not a Flatpak module.", path);
-            return None;
+            return Err(format!("{} is not a Flatpak module.", path));
         }
     }
 
@@ -1174,37 +1170,36 @@ impl FlatpakSourceDescription {
         return FlatpakManifest::file_extension_matches(path);
     }
 
-    pub fn load_from_file(path: String) -> Option<Vec<FlatpakSourceDescription>> {
+    pub fn load_from_file(path: String) -> Result<Vec<FlatpakSourceDescription>, String> {
         let file_path = path::Path::new(&path);
         if !file_path.is_file() {
-            eprintln!("{} is not a file.", path);
-            return None;
+            return Err(format!("{} is not a file.", path));
         }
 
         if FlatpakSourceDescription::file_path_matches(&file_path.to_str().unwrap()) {
             let source_content = match fs::read_to_string(file_path) {
                 Ok(content) => content,
                 Err(e) => {
-                    eprintln!("Could not read file {}: {}!", file_path.to_str().unwrap(), e);
-                    return None;
+                    return Err(format!(
+                        "Could not read file {}: {}!",
+                        file_path.to_str().unwrap(),
+                        e
+                    ))
                 }
             };
-            eprintln!("Parsing Flatpak source file {}", &path);
 
             // A standalone source manifest can contain a single source, or an array
             // of sources!!
             if let Ok(source) = FlatpakSourceDescription::parse(&path, &source_content) {
-                return Some(vec![source]);
+                return Ok(vec![source]);
             }
             if let Ok(sources) = FlatpakSourceDescription::parse_many(&path, &source_content) {
-                return Some(sources);
+                return Ok(sources);
             }
 
-            eprintln!("Failed to parse Flatpak source at {}.", path);
-            return None;
+            return Err(format!("Failed to parse Flatpak source at {}.", path));
         } else {
-            eprintln!("{} is not a Flatpak module.", path);
-            return None;
+            return Err(format!("{} is not a Flatpak module.", path));
         }
     }
 
