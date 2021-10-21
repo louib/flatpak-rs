@@ -609,7 +609,7 @@ impl FlatpakModuleDescription {
         let mut all_urls = vec![];
         for module in &self.modules {
             if let FlatpakModule::Description(module_description) = module {
-                all_urls.append(&mut module_description.get_all_urls());
+                all_urls.append(&mut module_description.get_all_mirror_urls());
             }
         }
         for source in &self.sources {
