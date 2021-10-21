@@ -416,8 +416,6 @@ impl FlatpakManifest {
     }
 }
 
-/// Each module item can be either a path to a module description file,
-/// or an inline module description.
 #[derive(Clone)]
 #[derive(Deserialize)]
 #[derive(Serialize)]
@@ -425,6 +423,8 @@ impl FlatpakManifest {
 #[derive(Hash)]
 #[serde(rename_all = "kebab-case")]
 #[serde(untagged)]
+/// Each module item can be either a path to a module description file,
+/// or an inline module description.
 pub enum FlatpakModule {
     Path(String),
     Description(FlatpakModuleDescription),
@@ -450,11 +450,6 @@ lazy_static! {
     ];
 }
 
-/// Each module specifies a source that has to be separately built and installed.
-/// It contains the build options and a list of sources to download and extract before
-/// building.
-///
-/// Modules can be nested, in order to turn related modules on and off with a single key.
 #[derive(Clone)]
 #[derive(Deserialize)]
 #[derive(Serialize)]
@@ -463,6 +458,11 @@ lazy_static! {
 #[derive(Hash)]
 #[serde(rename_all = "kebab-case")]
 #[serde(default)]
+/// Each module specifies a source that has to be separately built and installed.
+/// It contains the build options and a list of sources to download and extract before
+/// building.
+///
+/// Modules can be nested, in order to turn related modules on and off with a single key.
 pub struct FlatpakModuleDescription {
     // The name of the module, used in e.g. build logs. The name is also
     // used for constructing filenames and commandline arguments,
@@ -848,13 +848,6 @@ lazy_static! {
 
 pub const DEFAULT_SOURCE_TYPE: &str = "archive";
 
-/// The sources are a list pointer to the source code that needs to be extracted into
-/// the build directory before the build starts.
-/// They can be of several types, distinguished by the type property.
-///
-/// Additionally, the sources list can contain a plain string, which is interpreted as the name
-/// of a separate json or yaml file that is read and inserted at this
-/// point. The file can contain a single source, or an array of sources.
 #[derive(Clone)]
 #[derive(Deserialize)]
 #[derive(Serialize)]
@@ -862,6 +855,13 @@ pub const DEFAULT_SOURCE_TYPE: &str = "archive";
 #[derive(Hash)]
 #[serde(rename_all = "kebab-case")]
 #[serde(untagged)]
+/// The sources are a list pointer to the source code that needs to be extracted into
+/// the build directory before the build starts.
+/// They can be of several types, distinguished by the type property.
+///
+/// Additionally, the sources list can contain a plain string, which is interpreted as the name
+/// of a separate json or yaml file that is read and inserted at this
+/// point. The file can contain a single source, or an array of sources.
 pub enum FlatpakSource {
     Path(String),
     Description(FlatpakSourceDescription),
@@ -964,6 +964,9 @@ impl FlatpakSource {
 #[derive(Default)]
 #[derive(Hash)]
 #[serde(rename_all = "kebab-case")]
+/// These contain a pointer to the source that will be extracted into the
+/// source directory before the build starts. They can be of several types,
+/// distinguished by the type property.
 pub struct FlatpakSourceDescription {
     // Defines the type of the source description.
     // It is not explicit in the flatpak-manifest man page,
@@ -1298,8 +1301,6 @@ impl FlatpakSourceDescription {
     }
 }
 
-/// See https://github.com/flathub/flatpak-external-data-checker#changes-to-flatpak-manifests
-/// for the specification
 #[derive(Clone)]
 #[derive(Deserialize)]
 #[derive(Serialize)]
@@ -1308,6 +1309,8 @@ impl FlatpakSourceDescription {
 #[derive(Hash)]
 #[serde(rename_all = "kebab-case")]
 #[serde(default)]
+/// See https://github.com/flathub/flatpak-external-data-checker#changes-to-flatpak-manifests
+/// for the specification
 pub struct FlatpakDataCheckerConfig {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub r#type: Option<String>,
@@ -1322,13 +1325,6 @@ pub struct FlatpakDataCheckerConfig {
     pub is_main_source: Option<bool>,
 }
 
-/// Extension define extension points in the app/runtime that can be implemented by extensions,
-/// supplying extra files which are available during runtime.
-///
-/// Additionally the standard flatpak extension properties are supported, and put
-/// directly into the metadata file: autodelete, no-autodownload, subdirectories,
-/// add-ld-path, download-if, enable-if, merge-dirs, subdirectory-suffix, locale-subset,
-/// version, versions. See the flatpak metadata documentation for more information on these.
 #[derive(Clone)]
 #[derive(Deserialize)]
 #[derive(Serialize)]
@@ -1336,6 +1332,13 @@ pub struct FlatpakDataCheckerConfig {
 #[derive(Default)]
 #[serde(rename_all = "kebab-case")]
 #[serde(default)]
+/// Extension define extension points in the app/runtime that can be implemented by extensions,
+/// supplying extra files which are available during runtime.
+///
+/// Additionally the standard flatpak extension properties are supported, and put
+/// directly into the metadata file: autodelete, no-autodownload, subdirectories,
+/// add-ld-path, download-if, enable-if, merge-dirs, subdirectory-suffix, locale-subset,
+/// version, versions. See the flatpak metadata documentation for more information on these.
 pub struct FlatpakExtension {
     /// The directory where the extension is mounted. If the extension point is for an application,
     /// this path is relative to /app, otherwise it is relative to /usr.
@@ -1411,9 +1414,6 @@ pub struct FlatpakExtension {
     pub versions: Option<String>,
 }
 
-/// Build options specify the build environment of a module,
-/// and can be specified globally as well as per-module.
-/// Options can also be specified on a per-architecture basis using the arch property.
 #[derive(Clone)]
 #[derive(Deserialize)]
 #[derive(Serialize)]
@@ -1422,6 +1422,9 @@ pub struct FlatpakExtension {
 #[derive(Hash)]
 #[serde(rename_all = "kebab-case")]
 #[serde(default)]
+/// Build options specify the build environment of a module,
+/// and can be specified globally as well as per-module.
+/// Options can also be specified on a per-architecture basis using the arch property.
 pub struct FlatpakBuildOptions {
     // This is set in the environment variable CFLAGS during the build.
     // Multiple specifications of this (in e.g. per-arch area) are concatenated, separated by spaces.
