@@ -6,7 +6,9 @@ use lazy_static::lazy_static;
 use regex::Regex;
 use serde::{Deserialize, Serialize};
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Deserialize)]
+#[derive(Serialize)]
+#[derive(Debug)]
 pub enum FlatpakManifestFormat {
     JSON,
     YAML,
@@ -41,7 +43,10 @@ lazy_static! {
 
 /// See `man flatpak-manifest` for the flatpak manifest specs.
 /// Main structure for a Flatpak application manifest.
-#[derive(Deserialize, Serialize, Debug, Default)]
+#[derive(Deserialize)]
+#[derive(Serialize)]
+#[derive(Debug)]
+#[derive(Default)]
 #[serde(rename_all = "kebab-case")]
 #[serde(default)]
 pub struct FlatpakManifest {
@@ -409,9 +414,12 @@ impl FlatpakManifest {
     }
 }
 
-// Each module item can be either a path to a module description file,
-// or an inline module description.
-#[derive(Debug, Deserialize, Serialize)]
+/// Each module item can be either a path to a module description file,
+/// or an inline module description.
+#[derive(Deserialize)]
+#[derive(Serialize)]
+#[derive(Debug)]
+#[derive(Hash)]
 #[serde(rename_all = "kebab-case")]
 #[serde(untagged)]
 pub enum FlatpakModule {
@@ -439,12 +447,16 @@ lazy_static! {
     ];
 }
 
-// Each module specifies a source that has to be separately built and installed.
-// It contains the build options and a list of sources to download and extract before
-// building.
-//
-// Modules can be nested, in order to turn related modules on and off with a single key.
-#[derive(Debug, Default, Deserialize, Serialize)]
+/// Each module specifies a source that has to be separately built and installed.
+/// It contains the build options and a list of sources to download and extract before
+/// building.
+///
+/// Modules can be nested, in order to turn related modules on and off with a single key.
+#[derive(Deserialize)]
+#[derive(Serialize)]
+#[derive(Debug)]
+#[derive(Default)]
+#[derive(Hash)]
 #[serde(rename_all = "kebab-case")]
 #[serde(default)]
 pub struct FlatpakModuleDescription {
@@ -832,14 +844,17 @@ lazy_static! {
 
 pub const DEFAULT_SOURCE_TYPE: &str = "archive";
 
-// The sources are a list pointer to the source code that needs to be extracted into
-// the build directory before the build starts.
-// They can be of several types, distinguished by the type property.
-//
-// Additionally, the sources list can contain a plain string, which is interpreted as the name
-// of a separate json or yaml file that is read and inserted at this
-// point. The file can contain a single source, or an array of sources.
-#[derive(Debug, Deserialize, Serialize)]
+/// The sources are a list pointer to the source code that needs to be extracted into
+/// the build directory before the build starts.
+/// They can be of several types, distinguished by the type property.
+///
+/// Additionally, the sources list can contain a plain string, which is interpreted as the name
+/// of a separate json or yaml file that is read and inserted at this
+/// point. The file can contain a single source, or an array of sources.
+#[derive(Deserialize)]
+#[derive(Serialize)]
+#[derive(Debug)]
+#[derive(Hash)]
 #[serde(rename_all = "kebab-case")]
 #[serde(untagged)]
 pub enum FlatpakSource {
@@ -937,7 +952,11 @@ impl FlatpakSource {
     }
 }
 
-#[derive(Debug, Default, Deserialize, Serialize)]
+#[derive(Deserialize)]
+#[derive(Serialize)]
+#[derive(Debug)]
+#[derive(Default)]
+#[derive(Hash)]
 #[serde(rename_all = "kebab-case")]
 pub struct FlatpakSourceDescription {
     // Defines the type of the source description.
@@ -1273,9 +1292,13 @@ impl FlatpakSourceDescription {
     }
 }
 
-// See https://github.com/flathub/flatpak-external-data-checker#changes-to-flatpak-manifests
-// for the specification
-#[derive(Deserialize, Serialize, Default, Debug)]
+/// See https://github.com/flathub/flatpak-external-data-checker#changes-to-flatpak-manifests
+/// for the specification
+#[derive(Deserialize)]
+#[derive(Serialize)]
+#[derive(Debug)]
+#[derive(Default)]
+#[derive(Hash)]
 #[serde(rename_all = "kebab-case")]
 #[serde(default)]
 pub struct FlatpakDataCheckerConfig {
@@ -1292,45 +1315,48 @@ pub struct FlatpakDataCheckerConfig {
     pub is_main_source: Option<bool>,
 }
 
-// Extension define extension points in the app/runtime that can be implemented by extensions,
-// supplying extra files which are available during runtime.
-//
-// Additionally the standard flatpak extension properties are supported, and put
-// directly into the metadata file: autodelete, no-autodownload, subdirectories,
-// add-ld-path, download-if, enable-if, merge-dirs, subdirectory-suffix, locale-subset,
-// version, versions. See the flatpak metadata documentation for more information on these.
-#[derive(Deserialize, Serialize, Default, Debug)]
+/// Extension define extension points in the app/runtime that can be implemented by extensions,
+/// supplying extra files which are available during runtime.
+///
+/// Additionally the standard flatpak extension properties are supported, and put
+/// directly into the metadata file: autodelete, no-autodownload, subdirectories,
+/// add-ld-path, download-if, enable-if, merge-dirs, subdirectory-suffix, locale-subset,
+/// version, versions. See the flatpak metadata documentation for more information on these.
+#[derive(Deserialize)]
+#[derive(Serialize)]
+#[derive(Debug)]
+#[derive(Default)]
 #[serde(rename_all = "kebab-case")]
 #[serde(default)]
 pub struct FlatpakExtension {
-    // The directory where the extension is mounted. If the extension point is for an application,
-    // this path is relative to /app, otherwise it is relative to /usr.
+    /// The directory where the extension is mounted. If the extension point is for an application,
+    /// this path is relative to /app, otherwise it is relative to /usr.
     pub extension_directory: String,
 
-    // If this is true, then the data created in the extension directory is omitted from the result,
-    // and instead packaged in a separate extension.
+    /// If this is true, then the data created in the extension directory is omitted from the result,
+    /// and instead packaged in a separate extension.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub bundle: Option<bool>,
 
-    // If this is true, the extension is removed during when finishing.
-    // This is only interesting for extensions in the add-build-extensions property.
+    /// If this is true, the extension is removed during when finishing.
+    /// This is only interesting for extensions in the add-build-extensions property.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub remove_after_build: Option<bool>,
 
-    // Whether to automatically delete extensions matching this extension point
-    // when deleting a 'related' application or runtime.
+    /// Whether to automatically delete extensions matching this extension point
+    /// when deleting a 'related' application or runtime.
     pub autodelete: Option<bool>,
 
-    // Whether to automatically download extensions matching this extension point
-    // when updating or installing a 'related' application or runtime.
+    /// Whether to automatically download extensions matching this extension point
+    /// when updating or installing a 'related' application or runtime.
     pub no_autodownload: Option<bool>,
 
-    // If this key is set to true, then flatpak will look for extensions whose name is a
-    // prefix of the extension point name, and mount them at the corresponding
-    // name below the subdirectory.
+    /// If this key is set to true, then flatpak will look for extensions whose name is a
+    /// prefix of the extension point name, and mount them at the corresponding
+    /// name below the subdirectory.
     pub subdirectories: Option<bool>,
 
-    // A path relative to the extension point directory that will be appended to LD_LIBRARY_PATH.
+    /// A path relative to the extension point directory that will be appended to LD_LIBRARY_PATH.
     pub add_ld_path: Option<String>,
 
     // A list of conditions, separated by semi-colons, that must be true for the extension
@@ -1377,10 +1403,14 @@ pub struct FlatpakExtension {
     pub versions: Option<String>,
 }
 
-// Build options specify the build environment of a module,
-// and can be specified globally as well as per-module.
-// Options can also be specified on a per-architecture basis using the arch property.
-#[derive(Deserialize, Serialize, Debug, Default)]
+/// Build options specify the build environment of a module,
+/// and can be specified globally as well as per-module.
+/// Options can also be specified on a per-architecture basis using the arch property.
+#[derive(Deserialize)]
+#[derive(Serialize)]
+#[derive(Debug)]
+#[derive(Default)]
+#[derive(Hash)]
 #[serde(rename_all = "kebab-case")]
 #[serde(default)]
 pub struct FlatpakBuildOptions {
