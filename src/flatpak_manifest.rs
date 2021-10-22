@@ -709,6 +709,13 @@ impl FlatpakModuleDescription {
         Ok(flatpak_module)
     }
 
+    pub fn dump(&self) -> Result<String, String> {
+        return match serde_yaml::to_string(&self) {
+            Ok(d) => Ok(d),
+            Err(e) => Err(format!("Failed to dump the Flatpak manifest: {}.", e)),
+        };
+    }
+
     pub fn file_path_matches(path: &str) -> bool {
         return FlatpakManifest::file_extension_matches(path);
     }
