@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Publish a new version the library.
+# Publish a new version of the library.
 
 set -e
 
