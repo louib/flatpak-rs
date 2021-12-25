@@ -248,6 +248,7 @@ impl FlatpakManifest {
         }
         return self.id.to_string();
     }
+
     pub fn load_from_file(path: String) -> Result<FlatpakManifest, String> {
         let file_path = path::Path::new(&path);
         if !file_path.is_file() {
@@ -392,6 +393,7 @@ impl FlatpakManifest {
         }
         return max_depth;
     }
+
     pub fn is_extension(&self) -> bool {
         if let Some(e) = self.build_extension {
             return e;
@@ -619,6 +621,7 @@ impl FlatpakModuleDescription {
         }
         all_urls
     }
+
     pub fn get_buildsystem(&self) -> Option<String> {
         if !self.buildsystem.is_empty() {
             return Some(self.buildsystem.to_string());
@@ -628,6 +631,7 @@ impl FlatpakModuleDescription {
         }
         return None;
     }
+
     pub fn is_patched(&self) -> bool {
         for source in &self.sources {
             if let FlatpakSource::Description(sd) = source {
@@ -884,6 +888,7 @@ impl FlatpakSource {
             None => None,
         }
     }
+
     pub fn get_all_mirror_urls(&self) -> Vec<String> {
         let mut response: Vec<String> = vec![];
 
@@ -915,6 +920,7 @@ impl FlatpakSource {
         }
         return response;
     }
+
     pub fn get_type_name(&self) -> String {
         return match self {
             FlatpakSource::Path(_) => "path".to_string(),
@@ -926,24 +932,28 @@ impl FlatpakSource {
             }
         };
     }
+
     pub fn has_commit(&self) -> bool {
         return match self {
             FlatpakSource::Path(_) => false,
             FlatpakSource::Description(d) => d.commit.is_some(),
         };
     }
+
     pub fn has_tag(&self) -> bool {
         return match self {
             FlatpakSource::Path(_) => false,
             FlatpakSource::Description(d) => d.tag.is_some(),
         };
     }
+
     pub fn has_branch(&self) -> bool {
         return match self {
             FlatpakSource::Path(_) => false,
             FlatpakSource::Description(d) => d.branch.is_some(),
         };
     }
+
     pub fn type_is_valid(&self) -> bool {
         return match self {
             FlatpakSource::Path(_) => true,
@@ -955,12 +965,14 @@ impl FlatpakSource {
             }
         };
     }
+
     pub fn type_is_empty(&self) -> bool {
         return match self {
             FlatpakSource::Path(_) => false,
             FlatpakSource::Description(d) => d.r#type.is_none(),
         };
     }
+
     pub fn supports_mirror_urls(&self) -> bool {
         let type_name = self.get_type_name();
         // FIXME why are mirror urls not supported for types git, svn and bzr.
