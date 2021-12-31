@@ -441,14 +441,21 @@ impl FlatpakModule {
     }
 }
 
+pub const AUTOTOOLS: &str = "autotools";
+pub const CMAKE: &str = "cmake";
+pub const CMAKE_NINJA: &str = "cmake-ninja";
+pub const MESON: &str = "meson";
+pub const QMAKE: &str = "qmake";
+pub const SIMPLE: &str = "simple";
+
 lazy_static! {
-    static ref FLATPAK_BUILD_SYSTEMS: Vec<String> = vec![
-        "autotools".to_string(),
-        "cmake".to_string(),
-        "cmake-ninja".to_string(),
-        "meson".to_string(),
-        "simple".to_string(),
-        "qmake".to_string(),
+    pub static ref FLATPAK_BUILD_SYSTEMS: Vec<String> = vec![
+        AUTOTOOLS.to_string(),
+        CMAKE.to_string(),
+        CMAKE_NINJA.to_string(),
+        MESON.to_string(),
+        QMAKE.to_string(),
+        SIMPLE.to_string(),
     ];
 }
 
@@ -835,7 +842,7 @@ impl FlatpakModuleDescription {
 }
 
 lazy_static! {
-    static ref SOURCE_TYPES: Vec<String> = vec![
+    pub static ref SOURCE_TYPES: Vec<String> = vec![
         "archive".to_string(),
         "git".to_string(),
         "bzr".to_string(),
