@@ -392,7 +392,9 @@ impl FlatpakSourceDescription {
     }
 
     pub fn file_path_matches(path: &str) -> bool {
-        return crate::application::FlatpakApplication::file_extension_matches(path);
+        // The file path for a module is not necessarily in reverse DNS, so we can only test
+        // for the extension of the file.
+        crate::filename::extension_is_valid(path)
     }
 
     pub fn load_from_file(path: String) -> Result<Vec<FlatpakSourceDescription>, String> {
