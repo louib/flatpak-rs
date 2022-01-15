@@ -1,9 +1,9 @@
-name: rustfmt
+name: formatting
 
 on: [push, pull_request]
 
 jobs:
-  rustfmt:
+  formatting:
 
     runs-on: ubuntu-latest
 
