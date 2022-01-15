@@ -9,6 +9,9 @@ if ! command -v cargo; then
     die "Missing cargo";
 fi
 
-cargo build --release
-cargo publish
-echo "📦 Published the package on crates.io."
+output=$(cargo doc --quiet 2>&1)
+if [[ -n "$output" ]]; then
+    die "There were errors or warnings when generating the doc: $output"
+fi
+
+echo "👍 Generated the doc."

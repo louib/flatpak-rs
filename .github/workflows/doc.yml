@@ -1,0 +1,17 @@
+name: doc
+
+on: [push, pull_request]
+
+jobs:
+  doc:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v1
+    - name: printing rust version
+      run: rustc --version
+    - name: printing cargo version
+      run: cargo --version
+    - name: generating the documentation
+      run: bash ./scripts/generate_doc.sh
