@@ -4,7 +4,7 @@ use std::path;
 
 use serde::{Deserialize, Serialize};
 
-use crate::flatpak_manifest::FlatpakManifest;
+use crate::application::FlatpakManifest;
 use crate::source::FlatpakSource;
 
 #[derive(Clone)]

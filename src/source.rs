@@ -392,7 +392,7 @@ impl FlatpakSourceDescription {
     }
 
     pub fn file_path_matches(path: &str) -> bool {
-        return crate::flatpak_manifest::FlatpakManifest::file_extension_matches(path);
+        return crate::application::FlatpakManifest::file_extension_matches(path);
     }
 
     pub fn load_from_file(path: String) -> Result<Vec<FlatpakSourceDescription>, String> {
