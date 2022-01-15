@@ -441,24 +441,6 @@ impl FlatpakModule {
     }
 }
 
-pub const AUTOTOOLS: &str = "autotools";
-pub const CMAKE: &str = "cmake";
-pub const CMAKE_NINJA: &str = "cmake-ninja";
-pub const MESON: &str = "meson";
-pub const QMAKE: &str = "qmake";
-pub const SIMPLE: &str = "simple";
-
-lazy_static! {
-    pub static ref FLATPAK_BUILD_SYSTEMS: Vec<String> = vec![
-        AUTOTOOLS.to_string(),
-        CMAKE.to_string(),
-        CMAKE_NINJA.to_string(),
-        MESON.to_string(),
-        QMAKE.to_string(),
-        SIMPLE.to_string(),
-    ];
-}
-
 #[derive(Clone)]
 #[derive(Deserialize)]
 #[derive(Serialize)]
@@ -520,7 +502,7 @@ pub struct FlatpakModuleDescription {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub no_make_install: Option<bool>,
 
-    /// Don't fix up the *.py[oc] header timestamps for ostree use.
+    /// Don't fix up the python (*.pyo or *.pyc) header timestamps for ostree use.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub no_python_timestamp_fix: Option<bool>,
 
@@ -528,7 +510,8 @@ pub struct FlatpakModuleDescription {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub cmake: Option<bool>,
 
-    /// Build system to use: autotools, cmake, cmake-ninja, meson, simple, qmake
+    /// Build system to use.
+    /// See [`static@crate::build_systems::FLATPAK_BUILD_SYSTEMS`] for available values.
     #[serde(skip_serializing_if = "String::is_empty")]
     pub buildsystem: String,
 
@@ -633,8 +616,8 @@ impl FlatpakModuleDescription {
         if !self.buildsystem.is_empty() {
             return Some(self.buildsystem.to_string());
         }
-        if let Some(cmake) = self.cmake {
-            return if cmake { Some("cmake".to_string()) } else { None };
+        if self.cmake.unwrap_or(false) {
+            return Some(crate::build_systems::CMAKE.to_string());
         }
         return None;
     }
@@ -1342,7 +1325,7 @@ impl FlatpakSourceDescription {
 #[derive(Hash)]
 #[serde(rename_all = "kebab-case")]
 #[serde(default)]
-/// See https://github.com/flathub/flatpak-external-data-checker#changes-to-flatpak-manifests
+/// See <https://github.com/flathub/flatpak-external-data-checker#changes-to-flatpak-manifests>
 /// for the specification
 pub struct FlatpakDataCheckerConfig {
     #[serde(skip_serializing_if = "Option::is_none")]
