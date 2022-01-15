@@ -3,7 +3,7 @@ name = "flatpak-rs"
 authors = ["louib <code@louib.net>"]
 
 repository = "https://github.com/louib/flatpak-rs"
-description = "Flatpak library written in Rust."
+description = "Flatpak library for Rust."
 
 keywords = [
   "flatpak"
