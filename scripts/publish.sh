@@ -21,7 +21,8 @@ echo "📦 Published the flatpak-rs package on crates.io."
 sed -i 's/name = "flatpak-rs"/name = "flatpak"/g' "$SCRIPT_DIR/../Cargo.toml"
 
 cargo build --release
-cargo publish
+# This call to publish requires the dirty option because we've just renamed the crate.
+cargo publish --allow-dirty
 echo "📦 Published the flatpak package on crates.io."
 
 # Revert the hack from above.
