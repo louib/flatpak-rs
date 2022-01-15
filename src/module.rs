@@ -4,7 +4,7 @@ use std::path;
 
 use serde::{Deserialize, Serialize};
 
-use crate::application::FlatpakManifest;
+use crate::application::FlatpakApplication;
 use crate::source::FlatpakSource;
 
 #[derive(Clone)]
@@ -300,7 +300,7 @@ impl FlatpakModuleDescription {
     }
 
     pub fn file_path_matches(path: &str) -> bool {
-        return FlatpakManifest::file_extension_matches(path);
+        return FlatpakApplication::file_extension_matches(path);
     }
 
     pub fn get_all_urls(&self) -> Vec<String> {

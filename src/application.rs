@@ -54,7 +54,7 @@ lazy_static! {
 #[derive(Default)]
 #[serde(rename_all = "kebab-case")]
 #[serde(default)]
-pub struct FlatpakManifest {
+pub struct FlatpakApplication {
     #[serde(skip_serializing)]
     pub format: FlatpakManifestFormat,
 
@@ -244,7 +244,7 @@ pub struct FlatpakManifest {
     #[serde(skip_serializing_if = "Vec::is_empty")]
     pub modules: Vec<FlatpakModule>,
 }
-impl FlatpakManifest {
+impl FlatpakApplication {
     pub fn get_id(&self) -> String {
         if !self.app_id.is_empty() {
             return self.app_id.to_string();
@@ -252,13 +252,13 @@ impl FlatpakManifest {
         return self.id.to_string();
     }
 
-    pub fn load_from_file(path: String) -> Result<FlatpakManifest, String> {
+    pub fn load_from_file(path: String) -> Result<FlatpakApplication, String> {
         let file_path = path::Path::new(&path);
         if !file_path.is_file() {
             return Err(format!("{} is not a file.", path));
         }
 
-        if FlatpakManifest::file_path_matches(&file_path.to_str().unwrap()) {
+        if FlatpakApplication::file_path_matches(&file_path.to_str().unwrap()) {
             let manifest_content = match fs::read_to_string(file_path) {
                 Ok(content) => content,
                 Err(e) => {
@@ -270,7 +270,7 @@ impl FlatpakManifest {
                 }
             };
 
-            let manifest = match FlatpakManifest::parse(&path, &manifest_content) {
+            let manifest = match FlatpakApplication::parse(&path, &manifest_content) {
                 Ok(m) => m,
                 Err(e) => return Err(format!("Failed to parse Flatpak manifest at {}: {}", path, e)),
             };
@@ -295,8 +295,8 @@ impl FlatpakManifest {
         REVERSE_DNS_FILENAME_REGEX.is_match(&path.to_lowercase())
     }
 
-    pub fn parse(manifest_path: &str, manifest_content: &str) -> Result<FlatpakManifest, String> {
-        let mut flatpak_manifest: FlatpakManifest = FlatpakManifest::default();
+    pub fn parse(manifest_path: &str, manifest_content: &str) -> Result<FlatpakApplication, String> {
+        let mut flatpak_manifest: FlatpakApplication = FlatpakApplication::default();
 
         if manifest_path.to_lowercase().ends_with("yaml") || manifest_path.to_lowercase().ends_with("yml") {
             flatpak_manifest = match serde_yaml::from_str(&manifest_content) {
@@ -516,48 +516,56 @@ mod manifest_tests {
 
     #[test]
     pub fn test_file_path_matches() {
-        assert!(FlatpakManifest::file_path_matches("com.example.appName.yaml"));
-        assert!(FlatpakManifest::file_path_matches("COM.EXAMPLE.APPNAME.YAML"));
-        assert!(FlatpakManifest::file_path_matches(
+        assert!(FlatpakApplication::file_path_matches("com.example.appName.yaml"));
+        assert!(FlatpakApplication::file_path_matches("COM.EXAMPLE.APPNAME.YAML"));
+        assert!(FlatpakApplication::file_path_matches(
             "io.github.user.repo.Devel.yaml"
         ));
-        assert!(FlatpakManifest::file_path_matches(
+        assert!(FlatpakApplication::file_path_matches(
             "/path/to/com.example.appName.yaml"
         ));
-        assert!(FlatpakManifest::file_path_matches(
+        assert!(FlatpakApplication::file_path_matches(
             "/path/to/com.example.appName.yml"
         ));
-        assert!(FlatpakManifest::file_path_matches(
+        assert!(FlatpakApplication::file_path_matches(
             "/path/to/com.example.department.product.yaml"
         ));
-        assert!(FlatpakManifest::file_path_matches(
+        assert!(FlatpakApplication::file_path_matches(
             "/path/to/com.example.department.name-of-product.yaml"
         ));
-        assert!(FlatpakManifest::file_path_matches(
+        assert!(FlatpakApplication::file_path_matches(
             "contrib/linux/com.dosbox_x.DOSBox-X.yaml"
         ));
-        assert!(!FlatpakManifest::file_path_matches(
+        assert!(!FlatpakApplication::file_path_matches(
             "/tmp/com.github.flathub.org.freedesktop.LinuxAudio.Plugins.WolfShaper/flathub.json"
         ));
-        assert!(!FlatpakManifest::file_path_matches("Firefox-62.0.3.update.json"));
-        assert!(!FlatpakManifest::file_path_matches("/path/to/file.yaml"));
-        assert!(!FlatpakManifest::file_path_matches("/path/to/file.json"));
-        assert!(!FlatpakManifest::file_path_matches("/path/to/___432423fdsf.json"));
-        assert!(!FlatpakManifest::file_path_matches("/path/to/example.com.json"));
-        assert!(!FlatpakManifest::file_path_matches("/path/to/example.com.json."));
-        assert!(!FlatpakManifest::file_path_matches(""));
-        assert!(!FlatpakManifest::file_path_matches("/////////////"));
+        assert!(!FlatpakApplication::file_path_matches(
+            "Firefox-62.0.3.update.json"
+        ));
+        assert!(!FlatpakApplication::file_path_matches("/path/to/file.yaml"));
+        assert!(!FlatpakApplication::file_path_matches("/path/to/file.json"));
+        assert!(!FlatpakApplication::file_path_matches(
+            "/path/to/___432423fdsf.json"
+        ));
+        assert!(!FlatpakApplication::file_path_matches(
+            "/path/to/example.com.json"
+        ));
+        assert!(!FlatpakApplication::file_path_matches(
+            "/path/to/example.com.json."
+        ));
+        assert!(!FlatpakApplication::file_path_matches(""));
+        assert!(!FlatpakApplication::file_path_matches("/////////////"));
     }
 
     #[test]
     #[should_panic]
     pub fn test_parse_invalid_yaml() {
-        FlatpakManifest::parse("manifest.yaml", "----------------------------").unwrap();
+        FlatpakApplication::parse("manifest.yaml", "----------------------------").unwrap();
     }
 
     #[test]
     pub fn test_parse_missing_fields() {
-        assert!(FlatpakManifest::parse(
+        assert!(FlatpakApplication::parse(
             "manifest.yaml",
             r###"
             runtime: org.gnome.Platform
@@ -571,7 +579,7 @@ mod manifest_tests {
 
     #[test]
     pub fn test_parse() {
-        match FlatpakManifest::parse(
+        match FlatpakApplication::parse(
             "manifest.yaml",
             r###"
             app-id: net.louib.flatpak-review
@@ -602,7 +610,7 @@ mod manifest_tests {
 
     #[test]
     pub fn test_parse_shared_modules() {
-        match FlatpakManifest::parse(
+        match FlatpakApplication::parse(
             "manifest.yaml",
             r###"
             app-id: net.louib.flatpak-review
@@ -635,7 +643,7 @@ mod manifest_tests {
 
     #[test]
     pub fn test_parse_add_extensions() {
-        match FlatpakManifest::parse(
+        match FlatpakApplication::parse(
             "manifest.yaml",
             r###"
             app-id: net.pcsx2.PCSX2
@@ -676,7 +684,7 @@ mod manifest_tests {
 
     #[test]
     pub fn test_parse_string_source() {
-        match FlatpakManifest::parse(
+        match FlatpakApplication::parse(
             "manifest.yaml",
             r###"
             app-id: net.louib.flatpak-review
@@ -705,7 +713,7 @@ mod manifest_tests {
 
     #[test]
     pub fn test_parse_source_without_type() {
-        match FlatpakManifest::parse(
+        match FlatpakApplication::parse(
             "manifest.yaml",
             r###"
             app-id: net.louib.flatpak-review
@@ -736,7 +744,7 @@ mod manifest_tests {
 
     #[test]
     pub fn test_parse_build_options() {
-        match FlatpakManifest::parse(
+        match FlatpakApplication::parse(
             "manifest.yaml",
             r###"
             app-id: net.louib.flatpak-review
@@ -773,7 +781,7 @@ mod manifest_tests {
 
     #[test]
     pub fn test_parse_script_source() {
-        match FlatpakManifest::parse(
+        match FlatpakApplication::parse(
             "manifest.yaml",
             r###"
             app-id: net.louib.flatpak-review
@@ -808,7 +816,7 @@ mod manifest_tests {
 
     #[test]
     pub fn test_parse_json() {
-        match FlatpakManifest::parse(
+        match FlatpakApplication::parse(
             "manifest.json",
             r###"
             {
@@ -877,7 +885,7 @@ mod manifest_tests {
 
     #[test]
     pub fn test_parse_json_with_comments() {
-        match FlatpakManifest::parse(
+        match FlatpakApplication::parse(
             "manifest.json",
             r###"
             {
@@ -964,7 +972,7 @@ mod manifest_tests {
 
     #[test]
     pub fn test_parse_json_with_multi_line_comments() {
-        match FlatpakManifest::parse(
+        match FlatpakApplication::parse(
             "manifest.json",
             r###"
             {
@@ -1021,7 +1029,7 @@ mod manifest_tests {
 
     #[test]
     pub fn test_parse_extension() {
-        match FlatpakManifest::parse(
+        match FlatpakApplication::parse(
             "manifest.json",
             r###"
             {
@@ -1052,7 +1060,7 @@ mod manifest_tests {
 
     #[test]
     pub fn test_parse_recursive_modules() {
-        match FlatpakManifest::parse(
+        match FlatpakApplication::parse(
             "manifest.yaml",
             r###"
             app-id: com.georgefb.haruna
