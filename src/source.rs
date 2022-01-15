@@ -523,7 +523,7 @@ pub struct FlatpakDataCheckerConfig {
 }
 
 #[cfg(test)]
-mod source_tests {
+mod tests {
     use super::*;
 
     #[test]

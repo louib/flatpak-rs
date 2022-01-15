@@ -540,7 +540,7 @@ pub struct FlatpakBuildOptions {
 }
 
 #[cfg(test)]
-mod module_tests {
+mod tests {
     use super::*;
 
     #[test]

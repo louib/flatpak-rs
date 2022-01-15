@@ -24,12 +24,6 @@ impl Default for FlatpakManifestFormat {
 }
 
 lazy_static! {
-    static ref REVERSE_DNS_FILENAME_REGEX: Regex = Regex::new(
-        r"[a-z][a-z][a-z]*\.[a-z][0-9a-zA-Z_\-]+\.[a-z][0-9a-zA-Z_\-]+(\.[a-z][0-9a-zA-Z_\-]+)*\.(json|yaml|yml)$"
-    ).unwrap();
-}
-
-lazy_static! {
     pub static ref KNOWN_GENERATED_SOURCES_PATHS: Vec<String> = vec![
         "cargo-sources.json".to_string(),
         "generated-sources.json".to_string(),
@@ -292,7 +286,7 @@ impl FlatpakApplication {
     }
 
     pub fn file_path_matches(path: &str) -> bool {
-        REVERSE_DNS_FILENAME_REGEX.is_match(&path.to_lowercase())
+        crate::filename::is_reverse_dns(&path)
     }
 
     pub fn parse(manifest_path: &str, manifest_content: &str) -> Result<FlatpakApplication, String> {
@@ -511,7 +505,7 @@ pub struct FlatpakExtension {
 }
 
 #[cfg(test)]
-mod manifest_tests {
+mod tests {
     use super::*;
 
     #[test]
