@@ -3,11 +3,9 @@ use std::fs;
 use std::path;
 
 use lazy_static::lazy_static;
-use regex::Regex;
 use serde::{Deserialize, Serialize};
 
 use crate::module::{FlatpakBuildOptions, FlatpakModule, FlatpakModuleDescription};
-use crate::source::FlatpakSource;
 
 #[derive(Clone)]
 #[derive(Deserialize)]
