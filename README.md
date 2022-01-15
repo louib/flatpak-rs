@@ -1,5 +1,5 @@
 # flatpak-rs
-The Rust Flatpak library.
+Flatpak library for Rust.
 
 ![Tests status](https://github.com/louib/flatpak-rs/workflows/tests/badge.svg)
 ![Code formatting](https://github.com/louib/flatpak-rs/workflows/formatting/badge.svg)
