@@ -276,13 +276,7 @@ impl FlatpakApplication {
     }
 
     pub fn file_extension_matches(path: &str) -> bool {
-        if path.to_lowercase().ends_with("yml") || path.to_lowercase().ends_with("yaml") {
-            return true;
-        }
-        if path.to_lowercase().ends_with("json") {
-            return true;
-        }
-        return false;
+        crate::filename::extension_is_valid(&path)
     }
 
     pub fn file_path_matches(path: &str) -> bool {
@@ -292,7 +286,7 @@ impl FlatpakApplication {
     pub fn parse(manifest_path: &str, manifest_content: &str) -> Result<FlatpakApplication, String> {
         let mut flatpak_manifest: FlatpakApplication = FlatpakApplication::default();
 
-        if manifest_path.to_lowercase().ends_with("yaml") || manifest_path.to_lowercase().ends_with("yml") {
+        if crate::filename::is_yaml(&manifest_path) {
             flatpak_manifest = match serde_yaml::from_str(&manifest_content) {
                 Ok(m) => m,
                 Err(e) => {
@@ -300,7 +294,7 @@ impl FlatpakApplication {
                 }
             };
             flatpak_manifest.format = FlatpakManifestFormat::YAML;
-        } else if manifest_path.to_lowercase().ends_with("json") {
+        } else if crate::filename::is_json(&manifest_path) {
             let json_content_without_comments = crate::utils::remove_comments_from_json(manifest_content);
             flatpak_manifest = match serde_json::from_str(&json_content_without_comments) {
                 Ok(m) => m,
@@ -507,49 +501,6 @@ pub struct FlatpakExtension {
 #[cfg(test)]
 mod tests {
     use super::*;
-
-    #[test]
-    pub fn test_file_path_matches() {
-        assert!(FlatpakApplication::file_path_matches("com.example.appName.yaml"));
-        assert!(FlatpakApplication::file_path_matches("COM.EXAMPLE.APPNAME.YAML"));
-        assert!(FlatpakApplication::file_path_matches(
-            "io.github.user.repo.Devel.yaml"
-        ));
-        assert!(FlatpakApplication::file_path_matches(
-            "/path/to/com.example.appName.yaml"
-        ));
-        assert!(FlatpakApplication::file_path_matches(
-            "/path/to/com.example.appName.yml"
-        ));
-        assert!(FlatpakApplication::file_path_matches(
-            "/path/to/com.example.department.product.yaml"
-        ));
-        assert!(FlatpakApplication::file_path_matches(
-            "/path/to/com.example.department.name-of-product.yaml"
-        ));
-        assert!(FlatpakApplication::file_path_matches(
-            "contrib/linux/com.dosbox_x.DOSBox-X.yaml"
-        ));
-        assert!(!FlatpakApplication::file_path_matches(
-            "/tmp/com.github.flathub.org.freedesktop.LinuxAudio.Plugins.WolfShaper/flathub.json"
-        ));
-        assert!(!FlatpakApplication::file_path_matches(
-            "Firefox-62.0.3.update.json"
-        ));
-        assert!(!FlatpakApplication::file_path_matches("/path/to/file.yaml"));
-        assert!(!FlatpakApplication::file_path_matches("/path/to/file.json"));
-        assert!(!FlatpakApplication::file_path_matches(
-            "/path/to/___432423fdsf.json"
-        ));
-        assert!(!FlatpakApplication::file_path_matches(
-            "/path/to/example.com.json"
-        ));
-        assert!(!FlatpakApplication::file_path_matches(
-            "/path/to/example.com.json."
-        ));
-        assert!(!FlatpakApplication::file_path_matches(""));
-        assert!(!FlatpakApplication::file_path_matches("/////////////"));
-    }
 
     #[test]
     #[should_panic]
