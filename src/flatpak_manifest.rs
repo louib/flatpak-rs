@@ -513,7 +513,7 @@ pub struct FlatpakModuleDescription {
     pub cmake: Option<bool>,
 
     /// Build system to use.
-    /// See [`static@crate::build_systems::FLATPAK_BUILD_SYSTEMS`] for available values.
+    /// See [`static@crate::build_system::FLATPAK_BUILD_SYSTEMS`] for available values.
     #[serde(skip_serializing_if = "String::is_empty")]
     pub buildsystem: String,
 
@@ -619,7 +619,7 @@ impl FlatpakModuleDescription {
             return Some(self.buildsystem.to_string());
         }
         if self.cmake.unwrap_or(false) {
-            return Some(crate::build_systems::CMAKE.to_string());
+            return Some(crate::build_system::CMAKE.to_string());
         }
         return None;
     }
