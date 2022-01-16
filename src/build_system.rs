@@ -1,4 +1,3 @@
-use lazy_static::lazy_static;
 use serde::{Deserialize, Deserializer, Serialize, Serializer};
 
 pub const AUTOTOOLS: &str = "autotools";
