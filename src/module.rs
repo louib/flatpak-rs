@@ -4,6 +4,7 @@ use std::path;
 
 use serde::{Deserialize, Serialize};
 
+use crate::build_system::FlatpakBuildSystem;
 use crate::source::FlatpakSource;
 
 #[derive(Clone)]
@@ -99,9 +100,9 @@ pub struct FlatpakModuleDescription {
     pub cmake: Option<bool>,
 
     /// Build system to use.
-    /// See [`static@crate::build_system::FLATPAK_BUILD_SYSTEMS`] for available values.
-    #[serde(skip_serializing_if = "String::is_empty")]
-    pub buildsystem: String,
+    #[serde(deserialize_with = "crate::build_system::deserialize_from_string")]
+    #[serde(serialize_with = "crate::build_system::serialize_to_string")]
+    pub buildsystem: FlatpakBuildSystem,
 
     /// Use a build directory that is separate from the source directory
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -201,13 +202,10 @@ impl FlatpakModuleDescription {
     }
 
     pub fn get_buildsystem(&self) -> Option<String> {
-        if !self.buildsystem.is_empty() {
-            return Some(self.buildsystem.to_string());
-        }
         if self.cmake.unwrap_or(false) {
             return Some(crate::build_system::CMAKE.to_string());
         }
-        return None;
+        return Some(self.buildsystem.to_string());
     }
 
     pub fn is_patched(&self) -> bool {
