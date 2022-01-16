@@ -1,5 +1,5 @@
 use lazy_static::lazy_static;
-use serde::{Deserialize, Serialize};
+use serde::{Deserialize, Deserializer, Serialize, Serializer};
 
 pub const AUTOTOOLS: &str = "autotools";
 pub const CMAKE: &str = "cmake";
@@ -8,22 +8,8 @@ pub const MESON: &str = "meson";
 pub const QMAKE: &str = "qmake";
 pub const SIMPLE: &str = "simple";
 
-lazy_static! {
-    /// List of all build systems available natively with Flatpak.
-    /// THIS WILL BE DEPRECATED IN FAVOR OF THE ENUM.
-    pub static ref FLATPAK_BUILD_SYSTEMS: Vec<String> = vec![
-        AUTOTOOLS.to_string(),
-        CMAKE.to_string(),
-        CMAKE_NINJA.to_string(),
-        MESON.to_string(),
-        QMAKE.to_string(),
-        SIMPLE.to_string(),
-    ];
-}
-
 #[derive(Clone)]
 #[derive(Deserialize)]
-#[derive(Serialize)]
 #[derive(Debug)]
 #[derive(Hash)]
 pub enum FlatpakBuildSystem {
@@ -34,6 +20,23 @@ pub enum FlatpakBuildSystem {
     Meson,
     Simple,
 }
+
+pub fn serialize_to_string<S>(x: &FlatpakBuildSystem, s: S) -> Result<S::Ok, S::Error>
+where
+    S: Serializer,
+{
+    s.serialize_str(&x.to_string())
+}
+
+pub fn deserialize_from_string<'de, D>(deserializer: D) -> Result<FlatpakBuildSystem, D::Error>
+where
+    D: Deserializer<'de>,
+{
+    let buf = String::deserialize(deserializer)?;
+
+    FlatpakBuildSystem::from_string(&buf).map_err(serde::de::Error::custom)
+}
+
 impl Default for FlatpakBuildSystem {
     fn default() -> Self {
         FlatpakBuildSystem::Simple
