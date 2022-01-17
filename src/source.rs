@@ -2,7 +2,7 @@ use std::fs;
 use std::path;
 
 use lazy_static::lazy_static;
-use serde::{Deserialize, Serialize};
+use serde::{Deserialize, Deserializer, Serialize, Serializer};
 
 pub const ARCHIVE: &str = "archive";
 pub const GIT: &str = "git";
@@ -36,6 +36,93 @@ lazy_static! {
         DIR.to_string(),
     ];
     pub static ref VCS_TYPES: Vec<String> = vec![GIT.to_string(), BAZAAR.to_string(), SVN.to_string(),];
+}
+
+#[derive(Clone)]
+#[derive(Deserialize)]
+#[derive(Debug)]
+#[derive(Hash)]
+pub enum SourceType {
+    Archive,
+    Git,
+    Bazaar,
+    Svn,
+    Dir,
+    File,
+    Script,
+    Shell,
+    Patch,
+    ExtraData,
+}
+impl Default for SourceType {
+    fn default() -> Self {
+        SourceType::Archive
+    }
+}
+impl SourceType {
+    pub fn to_string(&self) -> String {
+        match &self {
+            Archive => ARCHIVE.to_string(),
+            Git => GIT.to_string(),
+            Bazaar => BAZAAR.to_string(),
+            Svn => SVN.to_string(),
+            Dir => DIR.to_string(),
+            File => FILE.to_string(),
+            Script => SCRIPT.to_string(),
+            Shell => SHELL.to_string(),
+            Patch => PATCH.to_string(),
+            ExtraData => EXTRA_DATA.to_string(),
+        }
+    }
+    pub fn from_string(source_type: &str) -> Result<SourceType, String> {
+        if source_type == ARCHIVE {
+            return Ok(SourceType::Archive);
+        }
+        if source_type == GIT {
+            return Ok(SourceType::Git);
+        }
+        if source_type == BAZAAR {
+            return Ok(SourceType::Bazaar);
+        }
+        if source_type == SVN {
+            return Ok(SourceType::Svn);
+        }
+        if source_type == DIR {
+            return Ok(SourceType::Dir);
+        }
+        if source_type == FILE {
+            return Ok(SourceType::File);
+        }
+        if source_type == SCRIPT {
+            return Ok(SourceType::Script);
+        }
+        if source_type == SHELL {
+            return Ok(SourceType::Shell);
+        }
+        if source_type == PATCH {
+            return Ok(SourceType::Patch);
+        }
+        if source_type == EXTRA_DATA {
+            return Ok(SourceType::ExtraData);
+        }
+        Err(format!("Invalid source type {}.", source_type))
+    }
+}
+
+pub fn serialize_to_string<S>(x: &SourceType, s: S) -> Result<S::Ok, S::Error>
+where
+    S: Serializer,
+{
+    s.serialize_str(&x.to_string())
+}
+
+pub fn deserialize_from_string<'de, D>(deserializer: D) -> Result<SourceType, D::Error>
+where
+    D: Deserializer<'de>,
+{
+    let buf = String::deserialize(deserializer)?;
+
+    SourceType::from_string(&buf).map_err(serde::de::Error::custom)
 }
 
 #[derive(Clone)]
@@ -356,6 +443,14 @@ pub struct FlatpakSourceDescription {
     pub x_checker_data: Option<FlatpakDataCheckerConfig>,
 }
 impl FlatpakSourceDescription {
+    /// Get the type for the Flatpak source.
+    pub fn get_type(&self) -> Option<String> {
+        if let Some(t) = &self.r#type {
+            return Some(t.clone());
+        }
+        None
+    }
+
     // The logic of this functions is based on the code from BuilderArchiveType.get_type
     // in the flatpak-builder project.
     pub fn detect_archive_type(url: &str) -> Option<String> {
