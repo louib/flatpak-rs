@@ -4,30 +4,39 @@ use std::path;
 use lazy_static::lazy_static;
 use serde::{Deserialize, Serialize};
 
+pub const ARCHIVE: &str = "archive";
+pub const GIT: &str = "git";
+pub const BAZAAR: &str = "bzr";
+pub const SVN: &str = "svn";
+pub const DIR: &str = "dir";
+pub const FILE: &str = "file";
+pub const SCRIPT: &str = "script";
+pub const SHELL: &str = "shell";
+pub const PATCH: &str = "patch";
+pub const EXTRA_DATA: &str = "extra-data";
+
 lazy_static! {
     pub static ref SOURCE_TYPES: Vec<String> = vec![
-        "archive".to_string(),
-        "git".to_string(),
-        "bzr".to_string(),
-        "svn".to_string(),
-        "dir".to_string(),
-        "file".to_string(),
-        "script".to_string(),
-        "shell".to_string(),
-        "patch".to_string(),
-        "extra-data".to_string(),
+        ARCHIVE.to_string(),
+        GIT.to_string(),
+        BAZAAR.to_string(),
+        SVN.to_string(),
+        DIR.to_string(),
+        FILE.to_string(),
+        SCRIPT.to_string(),
+        SHELL.to_string(),
+        PATCH.to_string(),
+        EXTRA_DATA.to_string(),
     ];
     pub static ref CODE_TYPES: Vec<String> = vec![
-        "archive".to_string(),
-        "git".to_string(),
-        "bzr".to_string(),
-        "svn".to_string(),
-        "dir".to_string(),
+        ARCHIVE.to_string(),
+        GIT.to_string(),
+        BAZAAR.to_string(),
+        SVN.to_string(),
+        DIR.to_string(),
     ];
-    pub static ref VCS_TYPES: Vec<String> = vec!["git".to_string(), "bzr".to_string(), "svn".to_string(),];
+    pub static ref VCS_TYPES: Vec<String> = vec![GIT.to_string(), BAZAAR.to_string(), SVN.to_string(),];
 }
-
-pub const DEFAULT_SOURCE_TYPE: &str = "archive";
 
 #[derive(Clone)]
 #[derive(Deserialize)]
