@@ -2,7 +2,6 @@ use std::collections::BTreeMap;
 use std::fs;
 use std::path;
 
-use lazy_static::lazy_static;
 use serde::{Deserialize, Serialize};
 
 use crate::module::{FlatpakBuildOptions, FlatpakModule, FlatpakModuleDescription};
@@ -19,22 +18,6 @@ impl Default for FlatpakManifestFormat {
     fn default() -> Self {
         FlatpakManifestFormat::YAML
     }
-}
-
-lazy_static! {
-    pub static ref KNOWN_GENERATED_SOURCES_PATHS: Vec<String> = vec![
-        "cargo-sources.json".to_string(),
-        "generated-sources.json".to_string(),
-        // For the go generator, the default is <module-name>-sources.json
-        "-sources.json".to_string(),
-        "python2-modules.json".to_string(),
-        "python3-modules.json".to_string(),
-        "python2-requirements.json".to_string(),
-        "python3-requirements.json".to_string(),
-        "pypi-dependencies.json".to_string(),
-        "generated-poetry-sources.json".to_string(),
-        "rubygems.json".to_string(),
-    ];
 }
 
 /// Main structure for a Flatpak application manifest.
