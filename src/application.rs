@@ -4,7 +4,7 @@ use std::path;
 
 use serde::{Deserialize, Serialize};
 
-use crate::module::{FlatpakBuildOptions, FlatpakModule, FlatpakModuleDescription};
+use crate::module::{FlatpakBuildOptions, FlatpakModule, FlatpakModuleItem};
 
 #[derive(Clone)]
 #[derive(Deserialize)]
@@ -217,7 +217,7 @@ pub struct FlatpakApplication {
     /// String members in the array are interpreted as the name of a separate
     /// json or yaml file that contains a module. See below for details.
     #[serde(skip_serializing_if = "Vec::is_empty")]
-    pub modules: Vec<FlatpakModule>,
+    pub modules: Vec<FlatpakModuleItem>,
 }
 impl FlatpakApplication {
     pub fn get_id(&self) -> String {
@@ -332,9 +332,9 @@ impl FlatpakApplication {
     pub fn get_all_module_urls(&self) -> Vec<String> {
         let mut all_urls = vec![];
         for module in &self.modules {
-            let module: &FlatpakModuleDescription = match module {
-                FlatpakModule::Path(_) => continue,
-                FlatpakModule::Description(m) => &m,
+            let module: &FlatpakModule = match module {
+                FlatpakModuleItem::Path(_) => continue,
+                FlatpakModuleItem::Description(m) => &m,
             };
             all_urls.append(&mut module.get_all_urls());
         }
@@ -346,9 +346,9 @@ impl FlatpakApplication {
             Some(m) => m,
             None => return None,
         };
-        let main_module: &FlatpakModuleDescription = match main_module {
-            FlatpakModule::Path(_) => return None,
-            FlatpakModule::Description(m) => m,
+        let main_module: &FlatpakModule = match main_module {
+            FlatpakModuleItem::Path(_) => return None,
+            FlatpakModuleItem::Description(m) => m,
         };
         return main_module.get_main_url();
     }
@@ -356,7 +356,7 @@ impl FlatpakApplication {
     pub fn get_max_depth(&self) -> i32 {
         let mut max_depth: i32 = 1;
         for module in &self.modules {
-            if let FlatpakModule::Description(module_description) = module {
+            if let FlatpakModuleItem::Description(module_description) = module {
                 let module_depth = module_description.get_max_depth();
                 if module_depth > max_depth {
                     max_depth = module_depth;
@@ -373,14 +373,14 @@ impl FlatpakApplication {
         false
     }
 
-    pub fn get_all_modules_recursively(&self) -> Vec<&FlatpakModule> {
-        let mut all_modules: Vec<&FlatpakModule> = vec![];
+    pub fn get_all_modules_recursively(&self) -> Vec<&FlatpakModuleItem> {
+        let mut all_modules: Vec<&FlatpakModuleItem> = vec![];
         for module in &self.modules {
             all_modules.push(module);
 
             let module = match module {
-                FlatpakModule::Description(d) => d,
-                FlatpakModule::Path(_) => continue,
+                FlatpakModuleItem::Description(d) => d,
+                FlatpakModuleItem::Path(_) => continue,
             };
             for child_module in module.get_all_modules_recursively() {
                 all_modules.push(child_module);

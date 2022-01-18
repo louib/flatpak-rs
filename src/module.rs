@@ -14,15 +14,15 @@ use crate::source::FlatpakSource;
 #[derive(Hash)]
 #[serde(rename_all = "kebab-case")]
 #[serde(untagged)]
-/// Each module item can be either a path to a module description file,
-/// or an inline module description.
-pub enum FlatpakModule {
+/// Items in a module list can be either paths to external module manifests, or inline descriptions
+/// of flatpak modules.
+pub enum FlatpakModuleItem {
     Path(String),
-    Description(FlatpakModuleDescription),
+    Description(FlatpakModule),
 }
-impl FlatpakModule {
+impl FlatpakModuleItem {
     pub fn get_all_repos_urls(&self) -> Vec<String> {
-        if let FlatpakModule::Description(module_description) = self {
+        if let FlatpakModuleItem::Description(module_description) = self {
             return module_description.get_all_urls();
         } else {
             return vec![];
@@ -43,7 +43,7 @@ impl FlatpakModule {
 /// building.
 ///
 /// Modules can be nested, in order to turn related modules on and off with a single key.
-pub struct FlatpakModuleDescription {
+pub struct FlatpakModule {
     /// The name of the module, used in e.g. build logs. The name is also
     /// used for constructing filenames and commandline arguments,
     /// therefore using spaces or '/' in this string is a bad idea.
@@ -170,9 +170,9 @@ pub struct FlatpakModuleDescription {
     /// String members in the array are interpreted as names of a separate json or
     /// yaml file that contains a module.
     #[serde(skip_serializing_if = "Vec::is_empty")]
-    pub modules: Vec<FlatpakModule>,
+    pub modules: Vec<FlatpakModuleItem>,
 }
-impl FlatpakModuleDescription {
+impl FlatpakModule {
     pub fn uses_external_data_checker(&self) -> bool {
         for source in &self.sources {
             let source_description = match source {
@@ -189,7 +189,7 @@ impl FlatpakModuleDescription {
     pub fn get_all_mirror_urls(&self) -> Vec<String> {
         let mut all_urls = vec![];
         for module in &self.modules {
-            if let FlatpakModule::Description(module_description) = module {
+            if let FlatpakModuleItem::Description(module_description) = module {
                 all_urls.append(&mut module_description.get_all_mirror_urls());
             }
         }
@@ -221,13 +221,13 @@ impl FlatpakModuleDescription {
         false
     }
 
-    pub fn load_from_file(path: String) -> Result<FlatpakModuleDescription, String> {
+    pub fn load_from_file(path: String) -> Result<FlatpakModule, String> {
         let file_path = path::Path::new(&path);
         if !file_path.is_file() {
             return Err(format!("{} is not a file.", path));
         }
 
-        if FlatpakModuleDescription::file_path_matches(&file_path.to_str().unwrap()) {
+        if FlatpakModule::file_path_matches(&file_path.to_str().unwrap()) {
             let module_content = match fs::read_to_string(file_path) {
                 Ok(content) => content,
                 Err(e) => {
@@ -238,7 +238,7 @@ impl FlatpakModuleDescription {
                     ));
                 }
             };
-            let module = match FlatpakModuleDescription::parse(&path, &module_content) {
+            let module = match FlatpakModule::parse(&path, &module_content) {
                 Ok(m) => m,
                 Err(e) => return Err(format!("Failed to parse Flatpak module at {}: {}", path, e)),
             };
@@ -248,8 +248,8 @@ impl FlatpakModuleDescription {
         }
     }
 
-    pub fn parse(module_path: &str, module_content: &str) -> Result<FlatpakModuleDescription, String> {
-        let mut flatpak_module: FlatpakModuleDescription = FlatpakModuleDescription::default();
+    pub fn parse(module_path: &str, module_content: &str) -> Result<FlatpakModule, String> {
+        let mut flatpak_module: FlatpakModule = FlatpakModule::default();
 
         if module_path.to_lowercase().ends_with("yaml") || module_path.to_lowercase().ends_with("yml") {
             flatpak_module = match serde_yaml::from_str(&module_content) {
@@ -305,7 +305,7 @@ impl FlatpakModuleDescription {
     pub fn get_all_urls(&self) -> Vec<String> {
         let mut all_urls = vec![];
         for module in &self.modules {
-            if let FlatpakModule::Description(module_description) = module {
+            if let FlatpakModuleItem::Description(module_description) = module {
                 all_urls.append(&mut module_description.get_all_urls());
             }
         }
@@ -363,7 +363,7 @@ impl FlatpakModuleDescription {
     pub fn get_max_depth(&self) -> i32 {
         let mut max_depth: i32 = 0;
         for module in &self.modules {
-            if let FlatpakModule::Description(module_description) = module {
+            if let FlatpakModuleItem::Description(module_description) = module {
                 let module_depth = module_description.get_max_depth();
                 if module_depth > max_depth {
                     max_depth = module_depth;
@@ -390,9 +390,9 @@ impl FlatpakModuleDescription {
         }
     }
 
-    pub fn get_all_modules_recursively(&self) -> Vec<&FlatpakModule> {
-        let mut all_modules: Vec<&FlatpakModule> = vec![];
-        let mut next_modules: Vec<&FlatpakModule> = vec![];
+    pub fn get_all_modules_recursively(&self) -> Vec<&FlatpakModuleItem> {
+        let mut all_modules: Vec<&FlatpakModuleItem> = vec![];
+        let mut next_modules: Vec<&FlatpakModuleItem> = vec![];
         for module in &self.modules {
             next_modules.push(module);
         }
@@ -401,8 +401,8 @@ impl FlatpakModuleDescription {
             all_modules.push(module);
 
             let module = match module {
-                FlatpakModule::Description(d) => d,
-                FlatpakModule::Path(_) => continue,
+                FlatpakModuleItem::Description(d) => d,
+                FlatpakModuleItem::Path(_) => continue,
             };
             for next_module in &module.modules {
                 next_modules.push(next_module);
@@ -544,7 +544,7 @@ mod tests {
 
     #[test]
     pub fn test_parse_extra_data() {
-        match FlatpakModuleDescription::parse(
+        match FlatpakModule::parse(
             "module.yaml",
             r###"
             name: wps
@@ -593,7 +593,7 @@ mod tests {
 
     #[test]
     pub fn test_parse_helm_files() {
-        assert!(FlatpakModuleDescription::parse(
+        assert!(FlatpakModule::parse(
             "module.yaml",
             r###"
             name: wps
