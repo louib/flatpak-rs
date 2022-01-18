@@ -559,10 +559,7 @@ impl FlatpakSource {
         Ok(flatpak_source)
     }
 
-    pub fn parse_many(
-        source_path: &str,
-        source_content: &str,
-    ) -> Result<Vec<FlatpakSource>, String> {
+    pub fn parse_many(source_path: &str, source_content: &str) -> Result<Vec<FlatpakSource>, String> {
         let mut flatpak_sources: Vec<FlatpakSource> = vec![];
 
         if source_path.to_lowercase().ends_with("yaml") || source_path.to_lowercase().ends_with("yml") {
