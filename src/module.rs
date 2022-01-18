@@ -12,22 +12,12 @@ use crate::source::FlatpakSourceItem;
 #[derive(Serialize)]
 #[derive(Debug)]
 #[derive(Hash)]
-#[serde(rename_all = "kebab-case")]
 #[serde(untagged)]
 /// Items in a module list can be either paths to external module manifests, or inline descriptions
 /// of flatpak modules.
 pub enum FlatpakModuleItem {
     Path(String),
     Description(FlatpakModule),
-}
-impl FlatpakModuleItem {
-    pub fn get_all_repos_urls(&self) -> Vec<String> {
-        if let FlatpakModuleItem::Description(module_description) = self {
-            return module_description.get_all_urls();
-        } else {
-            return vec![];
-        }
-    }
 }
 
 #[derive(Clone)]
