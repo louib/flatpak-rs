@@ -5,7 +5,7 @@ use std::path;
 use serde::{Deserialize, Serialize};
 
 use crate::build_system::FlatpakBuildSystem;
-use crate::source::FlatpakSource;
+use crate::source::FlatpakSourceItem;
 
 #[derive(Clone)]
 #[derive(Deserialize)]
@@ -57,7 +57,7 @@ pub struct FlatpakModule {
     /// String members in the array are interpreted as the name of a separate
     /// json or yaml file that contains sources. See below for details.
     #[serde(skip_serializing_if = "Vec::is_empty")]
-    pub sources: Vec<FlatpakSource>,
+    pub sources: Vec<FlatpakSourceItem>,
 
     /// An array of options that will be passed to configure
     #[serde(skip_serializing_if = "Vec::is_empty")]
@@ -176,8 +176,8 @@ impl FlatpakModule {
     pub fn uses_external_data_checker(&self) -> bool {
         for source in &self.sources {
             let source_description = match source {
-                FlatpakSource::Description(d) => d,
-                FlatpakSource::Path(_) => continue,
+                FlatpakSourceItem::Description(d) => d,
+                FlatpakSourceItem::Path(_) => continue,
             };
             if source_description.x_checker_data.is_some() {
                 return true;
@@ -210,7 +210,7 @@ impl FlatpakModule {
 
     pub fn is_patched(&self) -> bool {
         for source in &self.sources {
-            if let FlatpakSource::Description(sd) = source {
+            if let FlatpakSourceItem::Description(sd) = source {
                 if let Some(t) = &sd.r#type {
                     if t == "patch" {
                         return true;
@@ -276,8 +276,8 @@ impl FlatpakModule {
         }
         for source in &flatpak_module.sources {
             let source_path = match source {
-                FlatpakSource::Description(_) => continue,
-                FlatpakSource::Path(p) => p,
+                FlatpakSourceItem::Description(_) => continue,
+                FlatpakSourceItem::Path(p) => p,
             };
             // The string elements of the source array should only be FS paths, not
             // URLs or anything else.
@@ -325,8 +325,8 @@ impl FlatpakModule {
             }
 
             let source_description = match &source {
-                FlatpakSource::Path(_) => continue,
-                FlatpakSource::Description(d) => d,
+                FlatpakSourceItem::Path(_) => continue,
+                FlatpakSourceItem::Description(d) => d,
             };
 
             let archive_url = match &source_description.url {
@@ -346,8 +346,8 @@ impl FlatpakModule {
             }
 
             let source_description = match &source {
-                FlatpakSource::Path(_) => continue,
-                FlatpakSource::Description(d) => d,
+                FlatpakSourceItem::Path(_) => continue,
+                FlatpakSourceItem::Description(d) => d,
             };
 
             let git_url = match &source_description.url {

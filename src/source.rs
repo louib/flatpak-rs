@@ -139,15 +139,15 @@ where
 /// Additionally, the sources list can contain a plain string, which is interpreted as the name
 /// of a separate json or yaml file that is read and inserted at this
 /// point. The file can contain a single source, or an array of sources.
-pub enum FlatpakSource {
+pub enum FlatpakSourceItem {
     Path(String),
-    Description(FlatpakSourceDescription),
+    Description(FlatpakSource),
 }
-impl FlatpakSource {
+impl FlatpakSourceItem {
     pub fn get_url(&self) -> Option<String> {
         let source_description = match self {
-            FlatpakSource::Path(_) => return None,
-            FlatpakSource::Description(sd) => sd,
+            FlatpakSourceItem::Path(_) => return None,
+            FlatpakSourceItem::Description(sd) => sd,
         };
         match &source_description.url {
             Some(s) => Some(s.to_string()),
@@ -159,8 +159,8 @@ impl FlatpakSource {
         let mut response: Vec<String> = vec![];
 
         let source_description = match self {
-            FlatpakSource::Path(_) => return response,
-            FlatpakSource::Description(sd) => sd,
+            FlatpakSourceItem::Path(_) => return response,
+            FlatpakSourceItem::Description(sd) => sd,
         };
         if let Some(urls) = &source_description.mirror_urls {
             for url in urls {
@@ -173,8 +173,8 @@ impl FlatpakSource {
     pub fn get_all_urls(&self) -> Vec<String> {
         let mut response: Vec<String> = vec![];
         let source_description = match self {
-            FlatpakSource::Path(_) => return response,
-            FlatpakSource::Description(sd) => sd,
+            FlatpakSourceItem::Path(_) => return response,
+            FlatpakSourceItem::Description(sd) => sd,
         };
         if let Some(url) = &source_description.url {
             response.push(url.to_string());
@@ -189,8 +189,8 @@ impl FlatpakSource {
 
     pub fn get_type_name(&self) -> String {
         return match self {
-            FlatpakSource::Path(_) => "path".to_string(),
-            FlatpakSource::Description(d) => {
+            FlatpakSourceItem::Path(_) => "path".to_string(),
+            FlatpakSourceItem::Description(d) => {
                 if let Some(t) = &d.r#type {
                     return t.to_string();
                 }
@@ -201,29 +201,29 @@ impl FlatpakSource {
 
     pub fn has_commit(&self) -> bool {
         return match self {
-            FlatpakSource::Path(_) => false,
-            FlatpakSource::Description(d) => d.commit.is_some(),
+            FlatpakSourceItem::Path(_) => false,
+            FlatpakSourceItem::Description(d) => d.commit.is_some(),
         };
     }
 
     pub fn has_tag(&self) -> bool {
         return match self {
-            FlatpakSource::Path(_) => false,
-            FlatpakSource::Description(d) => d.tag.is_some(),
+            FlatpakSourceItem::Path(_) => false,
+            FlatpakSourceItem::Description(d) => d.tag.is_some(),
         };
     }
 
     pub fn has_branch(&self) -> bool {
         return match self {
-            FlatpakSource::Path(_) => false,
-            FlatpakSource::Description(d) => d.branch.is_some(),
+            FlatpakSourceItem::Path(_) => false,
+            FlatpakSourceItem::Description(d) => d.branch.is_some(),
         };
     }
 
     pub fn type_is_valid(&self) -> bool {
         return match self {
-            FlatpakSource::Path(_) => true,
-            FlatpakSource::Description(d) => {
+            FlatpakSourceItem::Path(_) => true,
+            FlatpakSourceItem::Description(d) => {
                 if let Some(t) = &d.r#type {
                     return SOURCE_TYPES.contains(&t);
                 }
@@ -234,8 +234,8 @@ impl FlatpakSource {
 
     pub fn type_is_empty(&self) -> bool {
         return match self {
-            FlatpakSource::Path(_) => false,
-            FlatpakSource::Description(d) => d.r#type.is_none(),
+            FlatpakSourceItem::Path(_) => false,
+            FlatpakSourceItem::Description(d) => d.r#type.is_none(),
         };
     }
 
@@ -259,7 +259,7 @@ impl FlatpakSource {
 /// These contain a pointer to the source that will be extracted into the
 /// source directory before the build starts. They can be of several types,
 /// distinguished by the type property.
-pub struct FlatpakSourceDescription {
+pub struct FlatpakSource {
     /// Defines the type of the source description.
     /// It is not explicit in the flatpak-manifest man page,
     /// but we only found 1 source in all our dataset with an empty
@@ -442,7 +442,7 @@ pub struct FlatpakSourceDescription {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub x_checker_data: Option<FlatpakDataCheckerConfig>,
 }
-impl FlatpakSourceDescription {
+impl FlatpakSource {
     /// Get the type for the Flatpak source.
     pub fn get_type(&self) -> Option<String> {
         if let Some(t) = &self.r#type {
@@ -500,13 +500,13 @@ impl FlatpakSourceDescription {
         crate::filename::extension_is_valid(path)
     }
 
-    pub fn load_from_file(path: String) -> Result<Vec<FlatpakSourceDescription>, String> {
+    pub fn load_from_file(path: String) -> Result<Vec<FlatpakSource>, String> {
         let file_path = path::Path::new(&path);
         if !file_path.is_file() {
             return Err(format!("{} is not a file.", path));
         }
 
-        if FlatpakSourceDescription::file_path_matches(&file_path.to_str().unwrap()) {
+        if FlatpakSource::file_path_matches(&file_path.to_str().unwrap()) {
             let source_content = match fs::read_to_string(file_path) {
                 Ok(content) => content,
                 Err(e) => {
@@ -520,10 +520,10 @@ impl FlatpakSourceDescription {
 
             // A standalone source manifest can contain a single source, or an array
             // of sources!!
-            if let Ok(source) = FlatpakSourceDescription::parse(&path, &source_content) {
+            if let Ok(source) = FlatpakSource::parse(&path, &source_content) {
                 return Ok(vec![source]);
             }
-            if let Ok(sources) = FlatpakSourceDescription::parse_many(&path, &source_content) {
+            if let Ok(sources) = FlatpakSource::parse_many(&path, &source_content) {
                 return Ok(sources);
             }
 
@@ -533,8 +533,8 @@ impl FlatpakSourceDescription {
         }
     }
 
-    pub fn parse(source_path: &str, source_content: &str) -> Result<FlatpakSourceDescription, String> {
-        let mut flatpak_source: FlatpakSourceDescription = FlatpakSourceDescription::default();
+    pub fn parse(source_path: &str, source_content: &str) -> Result<FlatpakSource, String> {
+        let mut flatpak_source: FlatpakSource = FlatpakSource::default();
 
         if source_path.to_lowercase().ends_with("yaml") || source_path.to_lowercase().ends_with("yml") {
             flatpak_source = match serde_yaml::from_str(&source_content) {
@@ -562,8 +562,8 @@ impl FlatpakSourceDescription {
     pub fn parse_many(
         source_path: &str,
         source_content: &str,
-    ) -> Result<Vec<FlatpakSourceDescription>, String> {
-        let mut flatpak_sources: Vec<FlatpakSourceDescription> = vec![];
+    ) -> Result<Vec<FlatpakSource>, String> {
+        let mut flatpak_sources: Vec<FlatpakSource> = vec![];
 
         if source_path.to_lowercase().ends_with("yaml") || source_path.to_lowercase().ends_with("yml") {
             flatpak_sources = match serde_yaml::from_str(&source_content) {
@@ -633,7 +633,7 @@ mod tests {
 
     #[test]
     pub fn test_parse_single_source() {
-        match FlatpakSourceDescription::parse(
+        match FlatpakSource::parse(
             "source.yaml",
             r###"
             type: file
@@ -649,7 +649,7 @@ mod tests {
 
     #[test]
     pub fn test_parse_multiple_sources() {
-        match FlatpakSourceDescription::parse_many(
+        match FlatpakSource::parse_many(
             "source.yaml",
             r###"
             - type: file
