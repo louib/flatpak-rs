@@ -1,7 +1,7 @@
 mod utils;
 
-pub mod archive;
 pub mod application;
+pub mod archive;
 pub mod build_system;
 pub mod filename;
 pub mod module;
