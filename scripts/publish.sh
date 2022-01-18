@@ -12,6 +12,9 @@ if ! command -v cargo; then
     die "Missing cargo";
 fi
 
+echo "Running tests first to make sure the package is legit..."
+cargo test
+
 cargo build --release
 cargo publish
 echo "📦 Published the flatpak-rs package on crates.io."
