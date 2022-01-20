@@ -4,21 +4,8 @@ use std::path;
 
 use serde::{Deserialize, Serialize};
 
+use crate::format::FlatpakManifestFormat;
 use crate::module::{FlatpakBuildOptions, FlatpakModule, FlatpakModuleItem};
-
-#[derive(Clone)]
-#[derive(Deserialize)]
-#[derive(Serialize)]
-#[derive(Debug)]
-pub enum FlatpakManifestFormat {
-    JSON,
-    YAML,
-}
-impl Default for FlatpakManifestFormat {
-    fn default() -> Self {
-        FlatpakManifestFormat::YAML
-    }
-}
 
 /// Main structure for a Flatpak application manifest.
 /// See `man flatpak-manifest` for the flatpak manifest specs.

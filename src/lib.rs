@@ -4,5 +4,6 @@ pub mod application;
 pub mod archive;
 pub mod build_system;
 pub mod filename;
+pub mod format;
 pub mod module;
 pub mod source;
