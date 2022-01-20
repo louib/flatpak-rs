@@ -514,7 +514,7 @@ mod tests {
                     branch: master
             "###,
         ) {
-            Err(e) => panic!(e),
+            Err(e) => std::panic::panic_any(e),
             Ok(manifest) => {
                 assert_eq!(manifest.app_id, "net.louib.flatpak-review");
             }
@@ -547,7 +547,7 @@ mod tests {
                 "shared-modules/linux-audio/lv2.json"
             "###,
         ) {
-            Err(e) => panic!(e),
+            Err(e) => std::panic::panic_any(e),
             Ok(manifest) => {
                 assert_eq!(manifest.app_id, "net.louib.flatpak-review");
             }
@@ -587,7 +587,7 @@ mod tests {
                     enable-if: "active-gl-driver"
             "###,
         ) {
-            Err(e) => panic!(e),
+            Err(e) => std::panic::panic_any(e),
             Ok(manifest) => {
                 assert_eq!(manifest.app_id, "net.pcsx2.PCSX2");
                 assert_eq!(manifest.add_extensions.len(), 3);
@@ -617,7 +617,7 @@ mod tests {
                     "shared-modules/linux-audio/lv2.json"
             "###,
         ) {
-            Err(e) => panic!(e),
+            Err(e) => std::panic::panic_any(e),
             Ok(manifest) => {
                 assert_eq!(manifest.app_id, "net.louib.flatpak-review");
             }
@@ -648,7 +648,7 @@ mod tests {
 
             "###,
         ) {
-            Err(e) => panic!(e),
+            Err(e) => std::panic::panic_any(e),
             Ok(manifest) => {
                 assert_eq!(manifest.app_id, "net.louib.flatpak-review");
             }
@@ -685,7 +685,7 @@ mod tests {
                     "shared-modules/linux-audio/lv2.json"
             "###,
         ) {
-            Err(e) => panic!(e),
+            Err(e) => std::panic::panic_any(e),
             Ok(manifest) => {
                 assert_eq!(manifest.app_id, "net.louib.flatpak-review");
             }
@@ -720,7 +720,7 @@ mod tests {
                         sed -i -e 's/\${\${NAME}_BIN}-NOTFOUND/\${NAME}_BIN-NOTFOUND/' cpp/CMakeLists.txt
             "###,
         ) {
-            Err(e) => panic!(e),
+            Err(e) => std::panic::panic_any(e),
             Ok(manifest) => {
                 assert_eq!(manifest.app_id, "net.louib.flatpak-review");
             }
@@ -789,7 +789,7 @@ mod tests {
             }
             "###,
         ) {
-            Err(e) => panic!(e),
+            Err(e) => std::panic::panic_any(e),
             Ok(manifest) => {
                 assert_eq!(manifest.app_id, "org.gnome.SoundJuicer");
             }
@@ -876,7 +876,7 @@ mod tests {
             }
             "###,
         ) {
-            Err(e) => panic!(e),
+            Err(e) => std::panic::panic_any(e),
             Ok(manifest) => {
                 assert_eq!(manifest.app_id, "org.gnome.SoundJuicer");
             }
@@ -933,7 +933,7 @@ mod tests {
             }
             "###,
         ) {
-            Err(e) => panic!(e),
+            Err(e) => std::panic::panic_any(e),
             Ok(manifest) => {
                 assert_eq!(manifest.app_id, "org.gnome.Lollypop");
             }
@@ -963,7 +963,7 @@ mod tests {
             }
             "###,
         ) {
-            Err(e) => panic!(e),
+            Err(e) => std::panic::panic_any(e),
             Ok(manifest) => {
                 assert_eq!(manifest.id, "org.freedesktop.Platform.Icontheme.Paper");
                 assert_eq!(manifest.get_id(), "org.freedesktop.Platform.Icontheme.Paper");
@@ -1147,7 +1147,7 @@ mod tests {
                         sha256: 'd80023ab221b3cb89229b632e247035a22c5afaee9a7b3c653bbd702f71c1083'
             "###,
         ) {
-            Err(e) => panic!(e),
+            Err(e) => std::panic::panic_any(e),
             Ok(manifest) => {
                 assert_eq!(manifest.app_id, "com.georgefb.haruna");
                 assert_eq!(manifest.get_max_depth(), 3);

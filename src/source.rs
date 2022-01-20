@@ -634,7 +634,7 @@ mod tests {
             path: apply_extra.sh
             "###,
         ) {
-            Err(e) => panic!(e),
+            Err(e) => std::panic::panic_any(e),
             Ok(source) => {
                 assert_eq!(source.path, Some("apply_extra.sh".to_string()));
             }
@@ -670,7 +670,7 @@ mod tests {
                 url-pattern: download_link_deb\s*=\s*"(http[s]?://[\w\d$-_@.&+]+)"
             "###,
         ) {
-            Err(e) => panic!(e),
+            Err(e) => std::panic::panic_any(e),
             Ok(sources) => {
                 assert_eq!(sources.len(), 4);
                 let last_source = sources.last().unwrap();
@@ -686,7 +686,7 @@ mod tests {
             path: apply_extra.sh
         "###;
         match FlatpakSource::parse("source.yaml", source_manifest) {
-            Ok(source) => {
+            Ok(_source) => {
                 panic!("We should not be able to parse a source manifest with an invalid source type");
             }
             Err(e) => {

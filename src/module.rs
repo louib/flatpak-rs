@@ -590,7 +590,7 @@ mod tests {
                   url-pattern: download_link_deb\s*=\s*"(http[s]?://[\w\d$-_@.&+]+)"
             "###,
         ) {
-            Err(e) => panic!(e),
+            Err(e) => std::panic::panic_any(e),
             Ok(module) => {
                 assert_eq!(module.name, "wps");
             }
