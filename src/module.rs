@@ -5,7 +5,7 @@ use std::path;
 use serde::{Deserialize, Serialize};
 
 use crate::build_system::FlatpakBuildSystem;
-use crate::source::FlatpakSourceItem;
+use crate::source::{FlatpakSourceItem, ARCHIVE, GIT, PATCH};
 
 #[derive(Clone)]
 #[derive(Deserialize)]
@@ -202,7 +202,7 @@ impl FlatpakModule {
         for source in &self.sources {
             if let FlatpakSourceItem::Description(sd) = source {
                 if let Some(t) = &sd.r#type {
-                    if t == "patch" {
+                    if t == PATCH {
                         return true;
                     }
                 }
@@ -310,7 +310,7 @@ impl FlatpakModule {
     pub fn get_all_archive_urls(&self) -> Vec<String> {
         let mut all_archive_urls = vec![];
         for source in &self.sources {
-            if source.get_type_name() != "archive" {
+            if source.get_type_name() != ARCHIVE {
                 continue;
             }
 
@@ -331,7 +331,7 @@ impl FlatpakModule {
     pub fn get_all_git_urls(&self) -> Vec<String> {
         let mut all_git_urls = vec![];
         for source in &self.sources {
-            if source.get_type_name() != "git" {
+            if source.get_type_name() != GIT {
                 continue;
             }
 

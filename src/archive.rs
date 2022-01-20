@@ -1,4 +1,4 @@
-use serde::{Deserialize, Deserializer, Serialize, Serializer};
+use serde::Deserialize;
 
 pub const RPM: &str = "rpm";
 pub const TAR: &str = "tar";
@@ -28,7 +28,7 @@ impl Default for ArchiveType {
 impl ArchiveType {
     pub fn to_string(&self) -> String {
         match &self {
-            Rpm => RPM.to_string(),
+            ArchiveType::Rpm => RPM.to_string(),
         }
     }
     pub fn from_string(archive_type: &str) -> Result<ArchiveType, String> {

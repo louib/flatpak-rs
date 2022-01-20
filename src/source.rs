@@ -62,16 +62,16 @@ impl Default for SourceType {
 impl SourceType {
     pub fn to_string(&self) -> String {
         match &self {
-            Archive => ARCHIVE.to_string(),
-            Git => GIT.to_string(),
-            Bazaar => BAZAAR.to_string(),
-            Svn => SVN.to_string(),
-            Dir => DIR.to_string(),
-            File => FILE.to_string(),
-            Script => SCRIPT.to_string(),
-            Shell => SHELL.to_string(),
-            Patch => PATCH.to_string(),
-            ExtraData => EXTRA_DATA.to_string(),
+            SourceType::Archive => ARCHIVE.to_string(),
+            SourceType::Git => GIT.to_string(),
+            SourceType::Bazaar => BAZAAR.to_string(),
+            SourceType::Svn => SVN.to_string(),
+            SourceType::Dir => DIR.to_string(),
+            SourceType::File => FILE.to_string(),
+            SourceType::Script => SCRIPT.to_string(),
+            SourceType::Shell => SHELL.to_string(),
+            SourceType::Patch => PATCH.to_string(),
+            SourceType::ExtraData => EXTRA_DATA.to_string(),
         }
     }
     pub fn from_string(source_type: &str) -> Result<SourceType, String> {
@@ -242,7 +242,7 @@ impl FlatpakSourceItem {
     pub fn supports_mirror_urls(&self) -> bool {
         let type_name = self.get_type_name();
         // FIXME why are mirror urls not supported for types git, svn and bzr.
-        if type_name == "archive" || type_name == "file" {
+        if type_name == ARCHIVE || type_name == FILE {
             return true;
         }
         return false;

@@ -1,4 +1,4 @@
-use serde::{Deserialize, Deserializer, Serialize, Serializer};
+use serde::{Deserialize, Deserializer, Serializer};
 
 pub const AUTOTOOLS: &str = "autotools";
 pub const CMAKE: &str = "cmake";
@@ -44,12 +44,12 @@ impl Default for FlatpakBuildSystem {
 impl FlatpakBuildSystem {
     pub fn to_string(&self) -> String {
         match &self {
-            Autotools => AUTOTOOLS.to_string(),
-            CMake => CMAKE.to_string(),
-            CMakeNinja => CMAKE_NINJA.to_string(),
-            QMake => QMAKE.to_string(),
-            Meson => MESON.to_string(),
-            Simple => SIMPLE.to_string(),
+            FlatpakBuildSystem::Autotools => AUTOTOOLS.to_string(),
+            FlatpakBuildSystem::CMake => CMAKE.to_string(),
+            FlatpakBuildSystem::CMakeNinja => CMAKE_NINJA.to_string(),
+            FlatpakBuildSystem::QMake => QMAKE.to_string(),
+            FlatpakBuildSystem::Meson => MESON.to_string(),
+            FlatpakBuildSystem::Simple => SIMPLE.to_string(),
         }
     }
     pub fn from_string(build_sys: &str) -> Result<FlatpakBuildSystem, String> {
