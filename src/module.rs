@@ -400,6 +400,22 @@ impl FlatpakModule {
         }
         all_modules
     }
+
+    /// A module is composite if it links to multiple software projects.
+    /// This is determined by the type of the sources contained in the module.
+    pub fn is_composite(&self) -> bool {
+        let mut code_sources_count = 0;
+        for source in &self.sources {
+            let source_type_name = source.get_type_name();
+            if crate::source::CODE_TYPES.contains(&source_type_name) {
+                code_sources_count += 1;
+            }
+            if code_sources_count > 1 {
+                return true;
+            }
+        }
+        false
+    }
 }
 
 #[derive(Clone)]
