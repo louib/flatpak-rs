@@ -42,7 +42,7 @@ lazy_static! {
 #[derive(Deserialize)]
 #[derive(Debug)]
 #[derive(Hash)]
-pub enum SourceType {
+pub enum FlatpakSourceType {
     Archive,
     Git,
     Bazaar,
@@ -54,75 +54,75 @@ pub enum SourceType {
     Patch,
     ExtraData,
 }
-impl Default for SourceType {
+impl Default for FlatpakSourceType {
     fn default() -> Self {
-        SourceType::Archive
+        FlatpakSourceType::Archive
     }
 }
-impl SourceType {
+impl FlatpakSourceType {
     pub fn to_string(&self) -> String {
         match &self {
-            SourceType::Archive => ARCHIVE.to_string(),
-            SourceType::Git => GIT.to_string(),
-            SourceType::Bazaar => BAZAAR.to_string(),
-            SourceType::Svn => SVN.to_string(),
-            SourceType::Dir => DIR.to_string(),
-            SourceType::File => FILE.to_string(),
-            SourceType::Script => SCRIPT.to_string(),
-            SourceType::Shell => SHELL.to_string(),
-            SourceType::Patch => PATCH.to_string(),
-            SourceType::ExtraData => EXTRA_DATA.to_string(),
+            FlatpakSourceType::Archive => ARCHIVE.to_string(),
+            FlatpakSourceType::Git => GIT.to_string(),
+            FlatpakSourceType::Bazaar => BAZAAR.to_string(),
+            FlatpakSourceType::Svn => SVN.to_string(),
+            FlatpakSourceType::Dir => DIR.to_string(),
+            FlatpakSourceType::File => FILE.to_string(),
+            FlatpakSourceType::Script => SCRIPT.to_string(),
+            FlatpakSourceType::Shell => SHELL.to_string(),
+            FlatpakSourceType::Patch => PATCH.to_string(),
+            FlatpakSourceType::ExtraData => EXTRA_DATA.to_string(),
         }
     }
-    pub fn from_string(source_type: &str) -> Result<SourceType, String> {
+    pub fn from_string(source_type: &str) -> Result<FlatpakSourceType, String> {
         if source_type == ARCHIVE {
-            return Ok(SourceType::Archive);
+            return Ok(FlatpakSourceType::Archive);
         }
         if source_type == GIT {
-            return Ok(SourceType::Git);
+            return Ok(FlatpakSourceType::Git);
         }
         if source_type == BAZAAR {
-            return Ok(SourceType::Bazaar);
+            return Ok(FlatpakSourceType::Bazaar);
         }
         if source_type == SVN {
-            return Ok(SourceType::Svn);
+            return Ok(FlatpakSourceType::Svn);
         }
         if source_type == DIR {
-            return Ok(SourceType::Dir);
+            return Ok(FlatpakSourceType::Dir);
         }
         if source_type == FILE {
-            return Ok(SourceType::File);
+            return Ok(FlatpakSourceType::File);
         }
         if source_type == SCRIPT {
-            return Ok(SourceType::Script);
+            return Ok(FlatpakSourceType::Script);
         }
         if source_type == SHELL {
-            return Ok(SourceType::Shell);
+            return Ok(FlatpakSourceType::Shell);
         }
         if source_type == PATCH {
-            return Ok(SourceType::Patch);
+            return Ok(FlatpakSourceType::Patch);
         }
         if source_type == EXTRA_DATA {
-            return Ok(SourceType::ExtraData);
+            return Ok(FlatpakSourceType::ExtraData);
         }
         Err(format!("Invalid source type {}.", source_type))
     }
 }
 
-pub fn serialize_to_string<S>(x: &SourceType, s: S) -> Result<S::Ok, S::Error>
+pub fn serialize_to_string<S>(x: &FlatpakSourceType, s: S) -> Result<S::Ok, S::Error>
 where
     S: Serializer,
 {
     s.serialize_str(&x.to_string())
 }
 
-pub fn deserialize_from_string<'de, D>(deserializer: D) -> Result<SourceType, D::Error>
+pub fn deserialize_from_string<'de, D>(deserializer: D) -> Result<FlatpakSourceType, D::Error>
 where
     D: Deserializer<'de>,
 {
     let buf = String::deserialize(deserializer)?;
 
-    SourceType::from_string(&buf).map_err(serde::de::Error::custom)
+    FlatpakSourceType::from_string(&buf).map_err(serde::de::Error::custom)
 }
 
 #[derive(Clone)]
