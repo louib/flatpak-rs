@@ -17,5 +17,7 @@ Add the library to your `Cargo.toml`:
 flatpak = "0"
 ```
 
+Note that this library is aliased as both `flatpak` and `flatpak-rs` on crates.io.
+
 ## License
 MIT
