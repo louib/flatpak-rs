@@ -588,9 +588,6 @@ impl FlatpakSource {
     }
 
     pub fn is_valid(&self) -> Result<(), String> {
-        if self.r#type.is_none() {
-            return Err("Required top-level field type is missing from Flatpak source.".to_string());
-        }
         if let Some(source_type) = &self.r#type {
             if !SOURCE_TYPES.contains(&source_type) {
                 return Err(format!("Invalid source type {}.", source_type));
@@ -629,7 +626,7 @@ mod tests {
     use super::*;
 
     #[test]
-    pub fn test_parse_single_source() {
+    pub fn test_parse_single_source_manifest() {
         match FlatpakSource::parse(
             "source.yaml",
             r###"
@@ -645,7 +642,7 @@ mod tests {
     }
 
     #[test]
-    pub fn test_parse_multiple_sources() {
+    pub fn test_parse_multiple_source_manifests() {
         match FlatpakSource::parse_many(
             "source.yaml",
             r###"
@@ -678,6 +675,41 @@ mod tests {
                 assert_eq!(sources.len(), 4);
                 let last_source = sources.last().unwrap();
                 assert_eq!(last_source.filename, Some("wps-office.deb".to_string()));
+            }
+        }
+    }
+
+    #[test]
+    pub fn test_parse_invalid_source_type() {
+        let source_manifest = r###"
+            type: not_a_valid_source_type
+            path: apply_extra.sh
+        "###;
+        match FlatpakSource::parse("source.yaml", source_manifest) {
+            Ok(source) => {
+                panic!("We should not be able to parse a source manifest with an invalid source type");
+            }
+            Err(e) => {
+                assert!(e.to_string().contains("Invalid source type"));
+            }
+        }
+    }
+
+    #[test]
+    pub fn test_parse_missing_source_type() {
+        let source_manifest = r###"
+            url: "https://ftp.gnu.org/gnu/gcc/gcc-7.5.0/gcc-7.5.0.tar.xz"
+            sha256: "b81946e7f01f90528a1f7352ab08cc602b9ccc05d4e44da4bd501c5a189ee661"
+        "###;
+        match FlatpakSource::parse("source.yaml", source_manifest) {
+            Ok(source) => {
+                assert!(source.url.is_some());
+            }
+            Err(e) => {
+                panic!(
+                    "We should be able to parse a source manifest without a source type: {}",
+                    e
+                );
             }
         }
     }
