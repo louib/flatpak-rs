@@ -1,4 +1,4 @@
-use serde::Deserialize;
+use serde::{Deserialize, Deserializer, Serializer};
 
 pub const RPM: &str = "rpm";
 pub const TAR: &str = "tar";
@@ -91,4 +91,28 @@ impl ArchiveType {
         }
         Err(format!("Invalid archive type {}.", archive_type))
     }
+}
+
+pub fn serialize_to_string<S>(x: &Option<ArchiveType>, s: S) -> Result<S::Ok, S::Error>
+where
+    S: Serializer,
+{
+    s.serialize_str(&x.as_ref().unwrap().to_string())
+}
+
+pub fn deserialize_from_string<'de, D>(deserializer: D) -> Result<Option<ArchiveType>, D::Error>
+where
+    D: Deserializer<'de>,
+{
+    let archive_type = match String::deserialize(deserializer) {
+        Ok(t) => t,
+        Err(e) => return Ok(None),
+    };
+
+    match ArchiveType::from_string(&archive_type) {
+        Ok(t) => Ok(Some(t)),
+        // Err(e) => Err(e).map_err(serde::de::Error::custom),
+        Err(e) => Ok(None),
+    }
+    // ArchiveType::from_string(&buf).map_err(serde::de::Error::custom)
 }
