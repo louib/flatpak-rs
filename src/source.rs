@@ -451,49 +451,6 @@ impl FlatpakSource {
         None
     }
 
-    // The logic of this functions is based on the code from BuilderArchiveType.get_type
-    // in the flatpak-builder project.
-    pub fn detect_archive_type(url: &str) -> Option<String> {
-        let url = url.to_lowercase();
-        if url.ends_with(".tar") {
-            return Some("tar".to_string());
-        }
-        if url.ends_with(".tar.gz") || url.ends_with(".tgz") || url.ends_with(".taz") {
-            return Some("tar-gzip".to_string());
-        }
-        if url.ends_with(".tar.z") || url.ends_with(".taz") {
-            return Some("tar-compress".to_string());
-        }
-        if url.ends_with(".tar.bz2") || url.ends_with(".tz2") {
-            return Some("tar-bzip2".to_string());
-        }
-        if url.ends_with(".tbz2") || url.ends_with(".tbz") {
-            return Some("tar-bzip2".to_string());
-        }
-        if url.ends_with(".tar.lz") {
-            return Some("tar-lzip".to_string());
-        }
-        if url.ends_with(".tar.lzma") || url.ends_with(".tlz") {
-            return Some("tar-lzma".to_string());
-        }
-        if url.ends_with(".tar.lzo") {
-            return Some("tar-lzop".to_string());
-        }
-        if url.ends_with(".tar.xz") || url.ends_with(".txz") {
-            return Some("tar-xz".to_string());
-        }
-        if url.ends_with(".zip") {
-            return Some("zip".to_string());
-        }
-        if url.ends_with(".rpm") {
-            return Some("rpm".to_string());
-        }
-        if url.ends_with(".7z") {
-            return Some("sevenz".to_string());
-        }
-        None
-    }
-
     pub fn file_path_matches(path: &str) -> bool {
         // The file path for a module is not necessarily in reverse DNS, so we can only test
         // for the extension of the file.

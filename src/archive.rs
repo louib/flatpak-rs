@@ -91,6 +91,49 @@ impl ArchiveType {
         }
         Err(format!("Invalid archive type {}.", archive_type))
     }
+
+    /// Detects the archive type from a path or a URL, using
+    /// the extension only.
+    pub fn from_path(path: &str) -> Option<ArchiveType> {
+        let path = path.to_lowercase();
+        if path.ends_with(".tar") {
+            return Some(ArchiveType::Tar);
+        }
+        if path.ends_with(".tar.gz") || path.ends_with(".tgz") || path.ends_with(".taz") {
+            return Some(ArchiveType::TarGzip);
+        }
+        if path.ends_with(".tar.z") || path.ends_with(".taz") {
+            return Some(ArchiveType::TarCompress);
+        }
+        if path.ends_with(".tar.bz2") || path.ends_with(".tz2") {
+            return Some(ArchiveType::TarBzip2);
+        }
+        if path.ends_with(".tbz2") || path.ends_with(".tbz") {
+            return Some(ArchiveType::TarBzip2);
+        }
+        if path.ends_with(".tar.lz") {
+            return Some(ArchiveType::TarLzip);
+        }
+        if path.ends_with(".tar.lzma") || path.ends_with(".tlz") {
+            return Some(ArchiveType::TarLzma);
+        }
+        if path.ends_with(".tar.lzo") {
+            return Some(ArchiveType::TarLzop);
+        }
+        if path.ends_with(".tar.xz") || path.ends_with(".txz") {
+            return Some(ArchiveType::TarXz);
+        }
+        if path.ends_with(".zip") {
+            return Some(ArchiveType::Zip);
+        }
+        if path.ends_with(".rpm") {
+            return Some(ArchiveType::Rpm);
+        }
+        if path.ends_with(".7z") {
+            return Some(ArchiveType::SevenZip);
+        }
+        None
+    }
 }
 
 pub fn serialize_to_string<S>(x: &Option<ArchiveType>, s: S) -> Result<S::Ok, S::Error>
