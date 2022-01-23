@@ -16,6 +16,7 @@ pub const SEVENZIP: &str = "7z";
 #[derive(Deserialize)]
 #[derive(Debug)]
 #[derive(Hash)]
+#[derive(PartialEq)]
 pub enum ArchiveType {
     Rpm,
     Tar,
