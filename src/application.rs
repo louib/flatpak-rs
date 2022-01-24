@@ -13,6 +13,7 @@ use crate::module::{FlatpakBuildOptions, FlatpakModule, FlatpakModuleItem};
 #[derive(Deserialize)]
 #[derive(Serialize)]
 #[derive(Debug)]
+#[derive(Hash)]
 #[derive(Default)]
 #[serde(rename_all = "kebab-case")]
 #[serde(default)]
@@ -382,6 +383,7 @@ impl FlatpakApplication {
 #[derive(Serialize)]
 #[derive(Debug)]
 #[derive(Default)]
+#[derive(Hash)]
 #[serde(rename_all = "kebab-case")]
 #[serde(default)]
 /// Extension define extension points in the app/runtime that can be implemented by extensions,
