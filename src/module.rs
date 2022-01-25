@@ -229,16 +229,13 @@ impl FlatpakModule {
                 return Err(format!("Could not read module manifest at {}: {}", &path, e));
             }
         };
-        let module = match FlatpakModule::parse(manifest_format, &manifest_content) {
-            Ok(m) => m,
-            Err(e) => {
-                return Err(format!(
-                    "Failed to parse Flatpak module manifest at {}: {}",
-                    path, e
-                ))
-            }
-        };
-        return Ok(module);
+        match FlatpakModule::parse(manifest_format, &manifest_content) {
+            Ok(m) => Ok(m),
+            Err(e) => Err(format!(
+                "Failed to parse Flatpak module manifest at {}: {}",
+                path, e
+            )),
+        }
     }
 
     pub fn parse(format: FlatpakManifestFormat, manifest_content: &str) -> Result<FlatpakModule, String> {
