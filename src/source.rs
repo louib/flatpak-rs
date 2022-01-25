@@ -4,6 +4,8 @@ use std::path;
 use lazy_static::lazy_static;
 use serde::{Deserialize, Deserializer, Serialize, Serializer};
 
+use crate::format::FlatpakManifestFormat;
+
 pub const ARCHIVE: &str = "archive";
 pub const GIT: &str = "git";
 pub const BAZAAR: &str = "bzr";
@@ -463,52 +465,52 @@ impl FlatpakSource {
             return Err(format!("{} is not a file.", path));
         }
 
-        if FlatpakSource::file_path_matches(&file_path.to_str().unwrap()) {
-            let source_content = match fs::read_to_string(file_path) {
-                Ok(content) => content,
-                Err(e) => {
-                    return Err(format!(
-                        "Could not read file {}: {}!",
-                        file_path.to_str().unwrap(),
-                        e
-                    ))
-                }
-            };
+        let manifest_format = match FlatpakManifestFormat::from_path(&path) {
+            Some(f) => f,
+            None => return Err(format!("{} is not a Flatpak source manifest.", path)),
+        };
 
-            // A standalone source manifest can contain a single source, or an array
-            // of sources!!
-            if let Ok(source) = FlatpakSource::parse(&path, &source_content) {
-                return Ok(vec![source]);
+        let manifest_content = match fs::read_to_string(file_path) {
+            Ok(content) => content,
+            Err(e) => {
+                return Err(format!(
+                    "Could not read file {}: {}!",
+                    file_path.to_str().unwrap(),
+                    e
+                ))
             }
-            if let Ok(sources) = FlatpakSource::parse_many(&path, &source_content) {
-                return Ok(sources);
-            }
+        };
 
-            return Err(format!("Failed to parse Flatpak source at {}.", path));
-        } else {
-            return Err(format!("{} is not a Flatpak module.", path));
+        // A standalone source manifest can contain a single source, or an array
+        // of sources!!
+        if let Ok(source) = FlatpakSource::parse(manifest_format.clone(), &manifest_content) {
+            return Ok(vec![source]);
         }
+        if let Ok(sources) = FlatpakSource::parse_many(manifest_format, &manifest_content) {
+            return Ok(sources);
+        }
+
+        return Err(format!("Failed to parse Flatpak source manifest at {}.", path));
     }
 
-    pub fn parse(source_path: &str, source_content: &str) -> Result<FlatpakSource, String> {
-        let mut flatpak_source: FlatpakSource = FlatpakSource::default();
-
-        if source_path.to_lowercase().ends_with("yaml") || source_path.to_lowercase().ends_with("yml") {
-            flatpak_source = match serde_yaml::from_str(&source_content) {
+    pub fn parse(format: FlatpakManifestFormat, manifest_content: &str) -> Result<FlatpakSource, String> {
+        let mut flatpak_source: FlatpakSource = match &format {
+            FlatpakManifestFormat::YAML => match serde_yaml::from_str(&manifest_content) {
                 Ok(m) => m,
                 Err(e) => {
-                    return Err(format!("Failed to parse the Flatpak manifest: {}.", e));
+                    return Err(format!("Failed to parse the Flatpak source manifest: {}.", e));
                 }
-            };
-        } else if source_path.to_lowercase().ends_with("json") {
-            let json_content_without_comments = crate::utils::remove_comments_from_json(source_content);
-            flatpak_source = match serde_json::from_str(&json_content_without_comments) {
-                Ok(m) => m,
-                Err(e) => {
-                    return Err(format!("Failed to parse the Flatpak manifest: {}.", e));
+            },
+            FlatpakManifestFormat::JSON => {
+                let json_content_without_comments = crate::utils::remove_comments_from_json(manifest_content);
+                match serde_json::from_str(&json_content_without_comments) {
+                    Ok(m) => m,
+                    Err(e) => {
+                        return Err(format!("Failed to parse the Flatpak source manifest: {}.", e));
+                    }
                 }
-            };
-        }
+            }
+        };
 
         if let Err(e) = flatpak_source.is_valid() {
             return Err(e);
@@ -516,25 +518,27 @@ impl FlatpakSource {
         Ok(flatpak_source)
     }
 
-    pub fn parse_many(source_path: &str, source_content: &str) -> Result<Vec<FlatpakSource>, String> {
-        let mut flatpak_sources: Vec<FlatpakSource> = vec![];
-
-        if source_path.to_lowercase().ends_with("yaml") || source_path.to_lowercase().ends_with("yml") {
-            flatpak_sources = match serde_yaml::from_str(&source_content) {
+    pub fn parse_many(
+        format: FlatpakManifestFormat,
+        manifest_content: &str,
+    ) -> Result<Vec<FlatpakSource>, String> {
+        let mut flatpak_sources: Vec<FlatpakSource> = match &format {
+            FlatpakManifestFormat::YAML => match serde_yaml::from_str(&manifest_content) {
                 Ok(m) => m,
                 Err(e) => {
-                    return Err(format!("Failed to parse the Flatpak manifest: {}.", e));
+                    return Err(format!("Failed to parse the Flatpak source manifest: {}.", e));
                 }
-            };
-        } else if source_path.to_lowercase().ends_with("json") {
-            let json_content_without_comments = crate::utils::remove_comments_from_json(source_content);
-            flatpak_sources = match serde_json::from_str(&json_content_without_comments) {
-                Ok(m) => m,
-                Err(e) => {
-                    return Err(format!("Failed to parse the Flatpak manifest: {}.", e));
+            },
+            FlatpakManifestFormat::JSON => {
+                let json_content_without_comments = crate::utils::remove_comments_from_json(manifest_content);
+                match serde_json::from_str(&json_content_without_comments) {
+                    Ok(m) => m,
+                    Err(e) => {
+                        return Err(format!("Failed to parse the Flatpak source manifest: {}.", e));
+                    }
                 }
-            };
-        }
+            }
+        };
 
         for flatpak_source in &flatpak_sources {
             if let Err(e) = flatpak_source.is_valid() {
@@ -585,7 +589,7 @@ mod tests {
     #[test]
     pub fn test_parse_single_source_manifest() {
         match FlatpakSource::parse(
-            "source.yaml",
+            FlatpakManifestFormat::YAML,
             r###"
             type: file
             path: apply_extra.sh
@@ -601,7 +605,7 @@ mod tests {
     #[test]
     pub fn test_parse_multiple_source_manifests() {
         match FlatpakSource::parse_many(
-            "source.yaml",
+            FlatpakManifestFormat::YAML,
             r###"
             - type: file
               path: apply_extra.sh
@@ -642,7 +646,7 @@ mod tests {
             type: not_a_valid_source_type
             path: apply_extra.sh
         "###;
-        match FlatpakSource::parse("source.yaml", source_manifest) {
+        match FlatpakSource::parse(FlatpakManifestFormat::YAML, source_manifest) {
             Ok(_source) => {
                 panic!("We should not be able to parse a source manifest with an invalid source type");
             }
@@ -658,7 +662,7 @@ mod tests {
             url: "https://ftp.gnu.org/gnu/gcc/gcc-7.5.0/gcc-7.5.0.tar.xz"
             sha256: "b81946e7f01f90528a1f7352ab08cc602b9ccc05d4e44da4bd501c5a189ee661"
         "###;
-        match FlatpakSource::parse("source.yaml", source_manifest) {
+        match FlatpakSource::parse(FlatpakManifestFormat::YAML, source_manifest) {
             Ok(source) => {
                 assert!(source.url.is_some());
             }
