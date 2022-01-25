@@ -16,3 +16,14 @@ impl Default for FlatpakManifestFormat {
         FlatpakManifestFormat::YAML
     }
 }
+impl FlatpakManifestFormat {
+    pub fn from_path(file_path: &str) -> Option<FlatpakManifestFormat> {
+        if file_path.to_lowercase().ends_with("yaml") || file_path.to_lowercase().ends_with("yml") {
+            return Some(FlatpakManifestFormat::YAML);
+        }
+        if file_path.to_lowercase().ends_with("json") {
+            return Some(FlatpakManifestFormat::JSON);
+        }
+        None
+    }
+}

@@ -5,6 +5,7 @@ use std::path;
 use serde::{Deserialize, Serialize};
 
 use crate::build_system::FlatpakBuildSystem;
+use crate::format::FlatpakManifestFormat;
 use crate::source::{FlatpakSourceItem, ARCHIVE, GIT, PATCH};
 
 #[derive(Clone)]
@@ -217,46 +218,47 @@ impl FlatpakModule {
             return Err(format!("{} is not a file.", path));
         }
 
-        if FlatpakModule::file_path_matches(&file_path.to_str().unwrap()) {
-            let module_content = match fs::read_to_string(file_path) {
-                Ok(content) => content,
-                Err(e) => {
-                    return Err(format!(
-                        "Could not read file {}: {}!",
-                        file_path.to_str().unwrap(),
-                        e
-                    ));
-                }
-            };
-            let module = match FlatpakModule::parse(&path, &module_content) {
-                Ok(m) => m,
-                Err(e) => return Err(format!("Failed to parse Flatpak module at {}: {}", path, e)),
-            };
-            return Ok(module);
-        } else {
-            return Err(format!("{} is not a Flatpak module.", path));
-        }
+        let manifest_format = match FlatpakManifestFormat::from_path(&path) {
+            Some(f) => f,
+            None => return Err(format!("{} is not a Flatpak module manifest.", path)),
+        };
+
+        let manifest_content = match fs::read_to_string(file_path) {
+            Ok(content) => content,
+            Err(e) => {
+                return Err(format!("Could not read module manifest at {}: {}", &path, e));
+            }
+        };
+        let module = match FlatpakModule::parse(manifest_format, &manifest_content) {
+            Ok(m) => m,
+            Err(e) => {
+                return Err(format!(
+                    "Failed to parse Flatpak module manifest at {}: {}",
+                    path, e
+                ))
+            }
+        };
+        return Ok(module);
     }
 
-    pub fn parse(module_path: &str, module_content: &str) -> Result<FlatpakModule, String> {
-        let mut flatpak_module: FlatpakModule = FlatpakModule::default();
-
-        if module_path.to_lowercase().ends_with("yaml") || module_path.to_lowercase().ends_with("yml") {
-            flatpak_module = match serde_yaml::from_str(&module_content) {
+    pub fn parse(format: FlatpakManifestFormat, manifest_content: &str) -> Result<FlatpakModule, String> {
+        let mut flatpak_module: FlatpakModule = match &format {
+            FlatpakManifestFormat::YAML => match serde_yaml::from_str(&manifest_content) {
                 Ok(m) => m,
                 Err(e) => {
-                    return Err(format!("Failed to parse the Flatpak manifest: {}.", e));
+                    return Err(format!("Failed to parse the Flatpak module manifest: {}.", e));
                 }
-            };
-        } else if module_path.to_lowercase().ends_with("json") {
-            let json_content_without_comments = crate::utils::remove_comments_from_json(module_content);
-            flatpak_module = match serde_json::from_str(&json_content_without_comments) {
-                Ok(m) => m,
-                Err(e) => {
-                    return Err(format!("Failed to parse the Flatpak manifest: {}.", e));
+            },
+            FlatpakManifestFormat::JSON => {
+                let json_content_without_comments = crate::utils::remove_comments_from_json(manifest_content);
+                match serde_json::from_str(&json_content_without_comments) {
+                    Ok(m) => m,
+                    Err(e) => {
+                        return Err(format!("Failed to parse the Flatpak module manifest: {}.", e));
+                    }
                 }
-            };
-        }
+            }
+        };
 
         if flatpak_module.name.is_empty() {
             return Err("Required top-level field name is missing from Flatpak module.".to_string());
@@ -551,7 +553,7 @@ mod tests {
     #[test]
     pub fn test_parse_extra_data() {
         match FlatpakModule::parse(
-            "module.yaml",
+            FlatpakManifestFormat::YAML,
             r###"
             name: wps
             buildsystem: simple
@@ -600,7 +602,7 @@ mod tests {
     #[test]
     pub fn test_parse_helm_files() {
         assert!(FlatpakModule::parse(
-            "module.yaml",
+            FlatpakManifestFormat::YAML,
             r###"
             name: wps
             sources:
