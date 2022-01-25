@@ -35,6 +35,9 @@ pub enum FlatpakModuleItem {
 ///
 /// Modules can be nested, in order to turn related modules on and off with a single key.
 pub struct FlatpakModule {
+    #[serde(skip_serializing)]
+    pub format: FlatpakManifestFormat,
+
     /// The name of the module, used in e.g. build logs. The name is also
     /// used for constructing filenames and commandline arguments,
     /// therefore using spaces or '/' in this string is a bad idea.
@@ -256,6 +259,7 @@ impl FlatpakModule {
                 }
             }
         };
+        flatpak_module.format = format;
 
         if flatpak_module.name.is_empty() {
             return Err("Required top-level field name is missing from Flatpak module.".to_string());

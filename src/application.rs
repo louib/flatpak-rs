@@ -221,26 +221,23 @@ impl FlatpakApplication {
             return Err(format!("{} is not a file.", path));
         }
 
-        if FlatpakApplication::file_path_matches(&file_path.to_str().unwrap()) {
-            let manifest_content = match fs::read_to_string(file_path) {
-                Ok(content) => content,
-                Err(e) => {
-                    return Err(format!(
-                        "Could not read file {}: {}!",
-                        file_path.to_str().unwrap(),
-                        e
-                    ))
-                }
-            };
+        let manifest_format = match FlatpakManifestFormat::from_path(&path) {
+            Some(f) => f,
+            None => return Err(format!("{} is not a Flatpak application manifest.", path)),
+        };
 
-            let manifest = match FlatpakApplication::parse(&path, &manifest_content) {
-                Ok(m) => m,
-                Err(e) => return Err(format!("Failed to parse Flatpak manifest at {}: {}", path, e)),
-            };
-
-            return Ok(manifest);
-        } else {
-            return Err(format!("{} is not a Flatpak manifest.", path));
+        let manifest_content = match fs::read_to_string(file_path) {
+            Ok(content) => content,
+            Err(e) => {
+                return Err(format!("Could not read application manifest at {}: {}", &path, e));
+            }
+        };
+        match FlatpakApplication::parse(manifest_format, &manifest_content) {
+            Ok(m) => Ok(m),
+            Err(e) => Err(format!(
+                "Failed to parse Flatpak application manifest at {}: {}",
+                path, e
+            )),
         }
     }
 
@@ -252,27 +249,31 @@ impl FlatpakApplication {
         crate::filename::is_reverse_dns(&path)
     }
 
-    pub fn parse(manifest_path: &str, manifest_content: &str) -> Result<FlatpakApplication, String> {
-        let mut flatpak_manifest: FlatpakApplication = FlatpakApplication::default();
-
-        if crate::filename::is_yaml(&manifest_path) {
-            flatpak_manifest = match serde_yaml::from_str(&manifest_content) {
+    pub fn parse(format: FlatpakManifestFormat, manifest_content: &str) -> Result<FlatpakApplication, String> {
+        let mut flatpak_manifest: FlatpakApplication = match &format {
+            FlatpakManifestFormat::YAML => match serde_yaml::from_str(&manifest_content) {
                 Ok(m) => m,
                 Err(e) => {
-                    return Err(format!("Failed to parse the Flatpak manifest: {}.", e));
+                    return Err(format!(
+                        "Failed to parse the Flatpak application manifest: {}.",
+                        e
+                    ));
                 }
-            };
-            flatpak_manifest.format = FlatpakManifestFormat::YAML;
-        } else if crate::filename::is_json(&manifest_path) {
-            let json_content_without_comments = crate::utils::remove_comments_from_json(manifest_content);
-            flatpak_manifest = match serde_json::from_str(&json_content_without_comments) {
-                Ok(m) => m,
-                Err(e) => {
-                    return Err(format!("Failed to parse the Flatpak manifest: {}.", e));
+            },
+            FlatpakManifestFormat::JSON => {
+                let json_content_without_comments = crate::utils::remove_comments_from_json(manifest_content);
+                match serde_json::from_str(&json_content_without_comments) {
+                    Ok(m) => m,
+                    Err(e) => {
+                        return Err(format!(
+                            "Failed to parse the Flatpak application manifest: {}.",
+                            e
+                        ));
+                    }
                 }
-            };
-            flatpak_manifest.format = FlatpakManifestFormat::JSON;
-        }
+            }
+        };
+        flatpak_manifest.format = format;
 
         // From https://docs.flatpak.org/en/latest/manifests.html#basic-properties:
         // Each manifest file should specify basic information about the application that is to be built,
@@ -475,13 +476,13 @@ mod tests {
     #[test]
     #[should_panic]
     pub fn test_parse_invalid_yaml() {
-        FlatpakApplication::parse("manifest.yaml", "----------------------------").unwrap();
+        FlatpakApplication::parse(FlatpakManifestFormat::YAML, "----------------------------").unwrap();
     }
 
     #[test]
     pub fn test_parse_missing_fields() {
         assert!(FlatpakApplication::parse(
-            "manifest.yaml",
+            FlatpakManifestFormat::YAML,
             r###"
             runtime: org.gnome.Platform
             runtime-version: "3.36"
@@ -495,7 +496,7 @@ mod tests {
     #[test]
     pub fn test_parse() {
         match FlatpakApplication::parse(
-            "manifest.yaml",
+            FlatpakManifestFormat::YAML,
             r###"
             app-id: net.louib.flatpak-review
             runtime: org.gnome.Platform
@@ -526,7 +527,7 @@ mod tests {
     #[test]
     pub fn test_parse_shared_modules() {
         match FlatpakApplication::parse(
-            "manifest.yaml",
+            FlatpakManifestFormat::YAML,
             r###"
             app-id: net.louib.flatpak-review
             runtime: org.gnome.Platform
@@ -559,7 +560,7 @@ mod tests {
     #[test]
     pub fn test_parse_add_extensions() {
         match FlatpakApplication::parse(
-            "manifest.yaml",
+            FlatpakManifestFormat::YAML,
             r###"
             app-id: net.pcsx2.PCSX2
             runtime: org.freedesktop.Platform
@@ -600,7 +601,7 @@ mod tests {
     #[test]
     pub fn test_parse_string_source() {
         match FlatpakApplication::parse(
-            "manifest.yaml",
+            FlatpakManifestFormat::YAML,
             r###"
             app-id: net.louib.flatpak-review
             runtime: org.gnome.Platform
@@ -629,7 +630,7 @@ mod tests {
     #[test]
     pub fn test_parse_source_without_type() {
         match FlatpakApplication::parse(
-            "manifest.yaml",
+            FlatpakManifestFormat::YAML,
             r###"
             app-id: net.louib.flatpak-review
             runtime: org.gnome.Platform
@@ -660,7 +661,7 @@ mod tests {
     #[test]
     pub fn test_parse_build_options() {
         match FlatpakApplication::parse(
-            "manifest.yaml",
+            FlatpakManifestFormat::YAML,
             r###"
             app-id: net.louib.flatpak-review
             runtime: org.gnome.Platform
@@ -697,7 +698,7 @@ mod tests {
     #[test]
     pub fn test_parse_script_source() {
         match FlatpakApplication::parse(
-            "manifest.yaml",
+            FlatpakManifestFormat::YAML,
             r###"
             app-id: net.louib.flatpak-review
             runtime: org.gnome.Platform
@@ -732,7 +733,7 @@ mod tests {
     #[test]
     pub fn test_parse_json() {
         match FlatpakApplication::parse(
-            "manifest.json",
+            FlatpakManifestFormat::JSON,
             r###"
             {
                 "app-id": "org.gnome.SoundJuicer",
@@ -801,7 +802,7 @@ mod tests {
     #[test]
     pub fn test_parse_json_with_comments() {
         match FlatpakApplication::parse(
-            "manifest.json",
+            FlatpakManifestFormat::JSON,
             r###"
             {
                 "app-id": "org.gnome.SoundJuicer",
@@ -888,7 +889,7 @@ mod tests {
     #[test]
     pub fn test_parse_json_with_multi_line_comments() {
         match FlatpakApplication::parse(
-            "manifest.json",
+            FlatpakManifestFormat::JSON,
             r###"
             {
               "app-id": "org.gnome.Lollypop",
@@ -945,7 +946,7 @@ mod tests {
     #[test]
     pub fn test_parse_extension() {
         match FlatpakApplication::parse(
-            "manifest.json",
+            FlatpakManifestFormat::JSON,
             r###"
             {
                 "id": "org.freedesktop.Platform.Icontheme.Paper",
@@ -976,7 +977,7 @@ mod tests {
     #[test]
     pub fn test_parse_recursive_modules() {
         match FlatpakApplication::parse(
-            "manifest.yaml",
+            FlatpakManifestFormat::YAML,
             r###"
             app-id: com.georgefb.haruna
             runtime: org.kde.Platform
