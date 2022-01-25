@@ -487,7 +487,7 @@ mod tests {
             runtime: org.gnome.Platform
             runtime-version: "3.36"
             sdk: org.gnome.Sdk
-            command: flatpak-review
+            command: flatpak-rs
             "###
         )
         .is_err());
@@ -498,28 +498,28 @@ mod tests {
         match FlatpakApplication::parse(
             FlatpakManifestFormat::YAML,
             r###"
-            app-id: net.louib.flatpak-review
+            app-id: net.louib.flatpak-rs
             runtime: org.gnome.Platform
             runtime-version: "3.36"
             sdk: org.gnome.Sdk
-            command: flatpak-review
+            command: flatpak-rs
             tags: ["nightly"]
             modules:
               -
-                name: "flatpak-review"
+                name: "flatpak-rs"
                 buildsystem: simple
                 cleanup: [ "*" ]
                 config-opts: []
                 sources:
                   -
                     type: git
-                    url: https://github.com/louib/flatpak-review.git
+                    url: https://github.com/louib/flatpak-rs.git
                     branch: master
             "###,
         ) {
             Err(e) => std::panic::panic_any(e),
             Ok(manifest) => {
-                assert_eq!(manifest.app_id, "net.louib.flatpak-review");
+                assert_eq!(manifest.app_id, "net.louib.flatpak-rs");
             }
         }
     }
@@ -529,22 +529,22 @@ mod tests {
         match FlatpakApplication::parse(
             FlatpakManifestFormat::YAML,
             r###"
-            app-id: net.louib.flatpak-review
+            app-id: net.louib.flatpak-rs
             runtime: org.gnome.Platform
             runtime-version: "3.36"
             sdk: org.gnome.Sdk
-            command: flatpak-review
+            command: flatpak-rs
             tags: ["nightly"]
             modules:
               -
-                name: "flatpak-review"
+                name: "flatpak-rs"
                 buildsystem: simple
                 cleanup: [ "*" ]
                 config-opts: []
                 sources:
                   -
                     type: git
-                    url: https://github.com/louib/flatpak-review.git
+                    url: https://github.com/louib/flatpak-rs.git
                     branch: master
               -
                 "shared-modules/linux-audio/lv2.json"
@@ -552,7 +552,7 @@ mod tests {
         ) {
             Err(e) => std::panic::panic_any(e),
             Ok(manifest) => {
-                assert_eq!(manifest.app_id, "net.louib.flatpak-review");
+                assert_eq!(manifest.app_id, "net.louib.flatpak-rs");
             }
         }
     }
@@ -603,15 +603,15 @@ mod tests {
         match FlatpakApplication::parse(
             FlatpakManifestFormat::YAML,
             r###"
-            app-id: net.louib.flatpak-review
+            app-id: net.louib.flatpak-rs
             runtime: org.gnome.Platform
             runtime-version: "3.36"
             sdk: org.gnome.Sdk
-            command: flatpak-review
+            command: flatpak-rs
             tags: ["nightly"]
             modules:
               -
-                name: "flatpak-review"
+                name: "flatpak-rs"
                 buildsystem: simple
                 cleanup: [ "*" ]
                 config-opts: []
@@ -622,7 +622,7 @@ mod tests {
         ) {
             Err(e) => std::panic::panic_any(e),
             Ok(manifest) => {
-                assert_eq!(manifest.app_id, "net.louib.flatpak-review");
+                assert_eq!(manifest.app_id, "net.louib.flatpak-rs");
             }
         }
     }
@@ -632,11 +632,11 @@ mod tests {
         match FlatpakApplication::parse(
             FlatpakManifestFormat::YAML,
             r###"
-            app-id: net.louib.flatpak-review
+            app-id: net.louib.flatpak-rs
             runtime: org.gnome.Platform
             runtime-version: "3.36"
             sdk: org.gnome.Sdk
-            command: flatpak-review
+            command: flatpak-rs
             tags: ["nightly"]
             modules:
               -
@@ -653,7 +653,7 @@ mod tests {
         ) {
             Err(e) => std::panic::panic_any(e),
             Ok(manifest) => {
-                assert_eq!(manifest.app_id, "net.louib.flatpak-review");
+                assert_eq!(manifest.app_id, "net.louib.flatpak-rs");
             }
         }
     }
@@ -663,15 +663,15 @@ mod tests {
         match FlatpakApplication::parse(
             FlatpakManifestFormat::YAML,
             r###"
-            app-id: net.louib.flatpak-review
+            app-id: net.louib.flatpak-rs
             runtime: org.gnome.Platform
             runtime-version: "3.36"
             sdk: org.gnome.Sdk
-            command: flatpak-review
+            command: flatpak-rs
             tags: ["nightly"]
             modules:
               -
-                name: "flatpak-review"
+                name: "flatpak-rs"
                 buildsystem: simple
                 cleanup: [ "*" ]
                 build-options:
@@ -690,7 +690,7 @@ mod tests {
         ) {
             Err(e) => std::panic::panic_any(e),
             Ok(manifest) => {
-                assert_eq!(manifest.app_id, "net.louib.flatpak-review");
+                assert_eq!(manifest.app_id, "net.louib.flatpak-rs");
             }
         }
     }
@@ -700,15 +700,15 @@ mod tests {
         match FlatpakApplication::parse(
             FlatpakManifestFormat::YAML,
             r###"
-            app-id: net.louib.flatpak-review
+            app-id: net.louib.flatpak-rs
             runtime: org.gnome.Platform
             runtime-version: "3.36"
             sdk: org.gnome.Sdk
-            command: flatpak-review
+            command: flatpak-rs
             tags: ["nightly"]
             modules:
               -
-                name: "flatpak-review"
+                name: "flatpak-rs"
                 buildsystem: simple
                 cleanup: [ "*" ]
                 config-opts: []
@@ -725,7 +725,7 @@ mod tests {
         ) {
             Err(e) => std::panic::panic_any(e),
             Ok(manifest) => {
-                assert_eq!(manifest.app_id, "net.louib.flatpak-review");
+                assert_eq!(manifest.app_id, "net.louib.flatpak-rs");
             }
         }
     }
