@@ -3,7 +3,9 @@
 //! module or source manifests. The goal of the library is to be compliant with what
 //! [`flatpak-builder`](https://github.com/flatpak/flatpak-builder) supports.
 //!
-//! ## Example usage
+//! ## Usage
+//! All three denominations of flatpak manifests can be parsed using this library,
+//! using the `FlatpakApplication`, `FlatpakModule` and `FlatpakSource` structs.
 //!
 //! ### Parse from a string
 //! ```
