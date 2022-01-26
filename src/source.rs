@@ -145,111 +145,6 @@ pub enum FlatpakSourceItem {
     Path(String),
     Description(FlatpakSource),
 }
-impl FlatpakSourceItem {
-    pub fn get_url(&self) -> Option<String> {
-        let source_description = match self {
-            FlatpakSourceItem::Path(_) => return None,
-            FlatpakSourceItem::Description(sd) => sd,
-        };
-        match &source_description.url {
-            Some(s) => Some(s.to_string()),
-            None => None,
-        }
-    }
-
-    pub fn get_all_mirror_urls(&self) -> Vec<String> {
-        let mut response: Vec<String> = vec![];
-
-        let source_description = match self {
-            FlatpakSourceItem::Path(_) => return response,
-            FlatpakSourceItem::Description(sd) => sd,
-        };
-        if let Some(urls) = &source_description.mirror_urls {
-            for url in urls {
-                response.push(url.to_string());
-            }
-        }
-        return response;
-    }
-
-    pub fn get_all_urls(&self) -> Vec<String> {
-        let mut response: Vec<String> = vec![];
-        let source_description = match self {
-            FlatpakSourceItem::Path(_) => return response,
-            FlatpakSourceItem::Description(sd) => sd,
-        };
-        if let Some(url) = &source_description.url {
-            response.push(url.to_string());
-        }
-        if let Some(urls) = &source_description.mirror_urls {
-            for url in urls {
-                response.push(url.to_string());
-            }
-        }
-        return response;
-    }
-
-    pub fn get_type_name(&self) -> String {
-        return match self {
-            FlatpakSourceItem::Path(_) => "path".to_string(),
-            FlatpakSourceItem::Description(d) => {
-                if let Some(t) = &d.r#type {
-                    return t.to_string();
-                }
-                return "empty".to_string();
-            }
-        };
-    }
-
-    pub fn has_commit(&self) -> bool {
-        return match self {
-            FlatpakSourceItem::Path(_) => false,
-            FlatpakSourceItem::Description(d) => d.commit.is_some(),
-        };
-    }
-
-    pub fn has_tag(&self) -> bool {
-        return match self {
-            FlatpakSourceItem::Path(_) => false,
-            FlatpakSourceItem::Description(d) => d.tag.is_some(),
-        };
-    }
-
-    pub fn has_branch(&self) -> bool {
-        return match self {
-            FlatpakSourceItem::Path(_) => false,
-            FlatpakSourceItem::Description(d) => d.branch.is_some(),
-        };
-    }
-
-    pub fn type_is_valid(&self) -> bool {
-        return match self {
-            FlatpakSourceItem::Path(_) => true,
-            FlatpakSourceItem::Description(d) => {
-                if let Some(t) = &d.r#type {
-                    return SOURCE_TYPES.contains(&t);
-                }
-                return false;
-            }
-        };
-    }
-
-    pub fn type_is_empty(&self) -> bool {
-        return match self {
-            FlatpakSourceItem::Path(_) => false,
-            FlatpakSourceItem::Description(d) => d.r#type.is_none(),
-        };
-    }
-
-    pub fn supports_mirror_urls(&self) -> bool {
-        let type_name = self.get_type_name();
-        // FIXME why are mirror urls not supported for types git, svn and bzr.
-        if type_name == ARCHIVE || type_name == FILE {
-            return true;
-        }
-        return false;
-    }
-}
 
 #[derive(Clone)]
 #[derive(Deserialize)]
@@ -555,6 +450,52 @@ impl FlatpakSource {
             }
         }
         Ok(())
+    }
+
+    pub fn get_url(&self) -> Option<String> {
+        match &self.url {
+            Some(s) => Some(s.to_string()),
+            None => None,
+        }
+    }
+
+    pub fn get_all_mirror_urls(&self) -> Vec<String> {
+        let mut response: Vec<String> = vec![];
+        if let Some(urls) = &self.mirror_urls {
+            for url in urls {
+                response.push(url.to_string());
+            }
+        }
+        return response;
+    }
+
+    pub fn get_all_urls(&self) -> Vec<String> {
+        let mut response: Vec<String> = vec![];
+        if let Some(url) = &self.url {
+            response.push(url.to_string());
+        }
+        if let Some(urls) = &self.mirror_urls {
+            for url in urls {
+                response.push(url.to_string());
+            }
+        }
+        return response;
+    }
+
+    pub fn get_type_name(&self) -> String {
+        if let Some(t) = &self.r#type {
+            return t.to_string();
+        }
+        return "empty".to_string();
+    }
+
+    pub fn supports_mirror_urls(&self) -> bool {
+        let type_name = self.get_type_name();
+        // FIXME why are mirror urls not supported for types git, svn and bzr.
+        if type_name == ARCHIVE || type_name == FILE {
+            return true;
+        }
+        return false;
     }
 }
 

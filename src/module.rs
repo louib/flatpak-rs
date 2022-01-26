@@ -6,7 +6,7 @@ use serde::{Deserialize, Serialize};
 
 use crate::build_system::FlatpakBuildSystem;
 use crate::format::FlatpakManifestFormat;
-use crate::source::{FlatpakSourceItem, ARCHIVE, GIT, PATCH};
+use crate::source::{FlatpakSource, FlatpakSourceItem, ARCHIVE, GIT, PATCH};
 
 #[derive(Clone)]
 #[derive(Deserialize)]
@@ -189,7 +189,11 @@ impl FlatpakModule {
             }
         }
         for source in &self.sources {
-            for url in source.get_all_mirror_urls() {
+            let source_description = match source {
+                FlatpakSourceItem::Description(d) => d,
+                FlatpakSourceItem::Path(_p) => continue,
+            };
+            for url in source_description.get_all_mirror_urls() {
                 all_urls.push(url.to_string());
             }
         }
@@ -307,7 +311,11 @@ impl FlatpakModule {
             }
         }
         for source in &self.sources {
-            for url in source.get_all_urls() {
+            let source_description = match source {
+                FlatpakSourceItem::Description(d) => d,
+                FlatpakSourceItem::Path(_p) => continue,
+            };
+            for url in source_description.get_all_urls() {
                 all_urls.push(url);
             }
         }
@@ -317,14 +325,13 @@ impl FlatpakModule {
     pub fn get_all_archive_urls(&self) -> Vec<String> {
         let mut all_archive_urls = vec![];
         for source in &self.sources {
-            if source.get_type_name() != ARCHIVE {
+            let source_description = match source {
+                FlatpakSourceItem::Description(d) => d,
+                FlatpakSourceItem::Path(_p) => continue,
+            };
+            if source_description.get_type_name() != ARCHIVE {
                 continue;
             }
-
-            let source_description = match &source {
-                FlatpakSourceItem::Path(_) => continue,
-                FlatpakSourceItem::Description(d) => d,
-            };
 
             let archive_url = match &source_description.url {
                 Some(u) => u,
@@ -338,14 +345,13 @@ impl FlatpakModule {
     pub fn get_all_git_urls(&self) -> Vec<String> {
         let mut all_git_urls = vec![];
         for source in &self.sources {
-            if source.get_type_name() != GIT {
+            let source_description = match source {
+                FlatpakSourceItem::Description(d) => d,
+                FlatpakSourceItem::Path(_p) => continue,
+            };
+            if source_description.get_type_name() != GIT {
                 continue;
             }
-
-            let source_description = match &source {
-                FlatpakSourceItem::Path(_) => continue,
-                FlatpakSourceItem::Description(d) => d,
-            };
 
             let git_url = match &source_description.url {
                 Some(u) => u,
@@ -379,7 +385,12 @@ impl FlatpakModule {
         // anything after is a patch or an additional file.
         let main_module_source = self.sources.first().unwrap();
 
-        let main_module_source_url: Option<String> = main_module_source.get_url();
+        let main_module_source_description = match main_module_source {
+            FlatpakSourceItem::Description(d) => d,
+            FlatpakSourceItem::Path(_p) => return None,
+        };
+
+        let main_module_source_url: Option<String> = main_module_source_description.get_url();
 
         match &main_module_source_url {
             Some(s) => Some(s.to_string()),
@@ -413,7 +424,12 @@ impl FlatpakModule {
     pub fn is_composite(&self) -> bool {
         let mut code_sources_count = 0;
         for source in &self.sources {
-            let source_type_name = source.get_type_name();
+            let source_description = match source {
+                FlatpakSourceItem::Description(d) => d,
+                FlatpakSourceItem::Path(_) => continue,
+            };
+
+            let source_type_name = source_description.get_type_name();
             if crate::source::CODE_TYPES.contains(&source_type_name) {
                 code_sources_count += 1;
             }
