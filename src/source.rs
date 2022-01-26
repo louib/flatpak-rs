@@ -18,18 +18,6 @@ pub const PATCH: &str = "patch";
 pub const EXTRA_DATA: &str = "extra-data";
 
 lazy_static! {
-    pub static ref SOURCE_TYPES: Vec<String> = vec![
-        ARCHIVE.to_string(),
-        GIT.to_string(),
-        BAZAAR.to_string(),
-        SVN.to_string(),
-        DIR.to_string(),
-        FILE.to_string(),
-        SCRIPT.to_string(),
-        SHELL.to_string(),
-        PATCH.to_string(),
-        EXTRA_DATA.to_string(),
-    ];
     pub static ref CODE_TYPES: Vec<String> = vec![
         ARCHIVE.to_string(),
         GIT.to_string(),
@@ -445,8 +433,8 @@ impl FlatpakSource {
 
     pub fn is_valid(&self) -> Result<(), String> {
         if let Some(source_type) = &self.r#type {
-            if !SOURCE_TYPES.contains(&source_type) {
-                return Err(format!("Invalid source type {}.", source_type));
+            if let Err(e) = FlatpakSourceType::from_string(&source_type) {
+                return Err(e);
             }
         }
         Ok(())
