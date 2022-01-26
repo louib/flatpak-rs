@@ -24,7 +24,10 @@ pub fn serialize_to_string<S>(x: &Option<FlatpakBuildSystem>, s: S) -> Result<S:
 where
     S: Serializer,
 {
-    s.serialize_str(&x.as_ref().unwrap().to_string())
+    if let Some(build_system) = x {
+        return s.serialize_str(&build_system.to_string());
+    }
+    panic!("This should not happen.");
 }
 
 pub fn deserialize_from_string<'de, D>(deserializer: D) -> Result<Option<FlatpakBuildSystem>, D::Error>

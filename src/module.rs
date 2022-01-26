@@ -96,6 +96,7 @@ pub struct FlatpakModule {
     /// Build system to use.
     #[serde(deserialize_with = "crate::build_system::deserialize_from_string")]
     #[serde(serialize_with = "crate::build_system::serialize_to_string")]
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub buildsystem: Option<FlatpakBuildSystem>,
 
     /// Use a build directory that is separate from the source directory
@@ -628,6 +629,9 @@ mod tests {
               - /share/man
         "###;
         let flatpak_application = FlatpakModule::parse(FlatpakManifestFormat::YAML, module_manifest).unwrap();
-        assert!(flatpak_application.buildsystem.is_none())
+        assert!(flatpak_application.buildsystem.is_none());
+
+        let application_dump = flatpak_application.dump().unwrap();
+        assert!(!application_dump.contains("buildsystem"))
     }
 }
