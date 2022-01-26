@@ -6,7 +6,7 @@ use serde::{Deserialize, Serialize};
 
 use crate::build_system::FlatpakBuildSystem;
 use crate::format::FlatpakManifestFormat;
-use crate::source::{FlatpakSourceItem, ARCHIVE, GIT, PATCH};
+use crate::source::{FlatpakSourceItem, FlatpakSourceType, ARCHIVE, GIT};
 
 #[derive(Clone)]
 #[derive(Deserialize)]
@@ -210,7 +210,7 @@ impl FlatpakModule {
         for source in &self.sources {
             if let FlatpakSourceItem::Description(sd) = source {
                 if let Some(t) = &sd.r#type {
-                    if t == PATCH {
+                    if *t == FlatpakSourceType::Patch {
                         return true;
                     }
                 }

@@ -44,6 +44,7 @@ lazy_static! {
 #[derive(Deserialize)]
 #[derive(Debug)]
 #[derive(Hash)]
+#[derive(PartialEq)]
 pub enum FlatpakSourceType {
     Archive,
     Git,
@@ -111,20 +112,26 @@ impl FlatpakSourceType {
     }
 }
 
-pub fn serialize_to_string<S>(x: &FlatpakSourceType, s: S) -> Result<S::Ok, S::Error>
+pub fn serialize_to_string<S>(x: &Option<FlatpakSourceType>, s: S) -> Result<S::Ok, S::Error>
 where
     S: Serializer,
 {
-    s.serialize_str(&x.to_string())
+    if let Some(build_system) = x {
+        return s.serialize_str(&build_system.to_string());
+    }
+    panic!("This should not happen.");
 }
 
-pub fn deserialize_from_string<'de, D>(deserializer: D) -> Result<FlatpakSourceType, D::Error>
+pub fn deserialize_from_string<'de, D>(deserializer: D) -> Result<Option<FlatpakSourceType>, D::Error>
 where
     D: Deserializer<'de>,
 {
     let buf = String::deserialize(deserializer)?;
 
-    FlatpakSourceType::from_string(&buf).map_err(serde::de::Error::custom)
+    match FlatpakSourceType::from_string(&buf) {
+        Ok(b) => Ok(Some(b)),
+        Err(e) => Err(e).map_err(serde::de::Error::custom),
+    }
 }
 
 #[derive(Clone)]
@@ -222,18 +229,6 @@ impl FlatpakSourceItem {
         };
     }
 
-    pub fn type_is_valid(&self) -> bool {
-        return match self {
-            FlatpakSourceItem::Path(_) => true,
-            FlatpakSourceItem::Description(d) => {
-                if let Some(t) = &d.r#type {
-                    return SOURCE_TYPES.contains(&t);
-                }
-                return false;
-            }
-        };
-    }
-
     pub fn type_is_empty(&self) -> bool {
         return match self {
             FlatpakSourceItem::Path(_) => false,
@@ -266,8 +261,10 @@ pub struct FlatpakSource {
     /// It is not explicit in the flatpak-manifest man page,
     /// but we only found 1 source in all our dataset with an empty
     /// type, so we assume that the field is actually required.
+    #[serde(deserialize_with = "crate::source::deserialize_from_string")]
+    #[serde(serialize_with = "crate::source::serialize_to_string")]
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub r#type: Option<String>,
+    pub r#type: Option<FlatpakSourceType>,
 
     /// An array of shell commands.
     /// types: script, shell
@@ -448,7 +445,7 @@ impl FlatpakSource {
     /// Get the type for the Flatpak source.
     pub fn get_type(&self) -> Option<String> {
         if let Some(t) = &self.r#type {
-            return Some(t.clone());
+            return Some(t.to_string());
         }
         None
     }
@@ -511,10 +508,6 @@ impl FlatpakSource {
                 }
             }
         };
-
-        if let Err(e) = flatpak_source.is_valid() {
-            return Err(e);
-        }
         Ok(flatpak_source)
     }
 
@@ -539,22 +532,7 @@ impl FlatpakSource {
                 }
             }
         };
-
-        for flatpak_source in &flatpak_sources {
-            if let Err(e) = flatpak_source.is_valid() {
-                return Err(e);
-            }
-        }
         Ok(flatpak_sources)
-    }
-
-    pub fn is_valid(&self) -> Result<(), String> {
-        if let Some(source_type) = &self.r#type {
-            if !SOURCE_TYPES.contains(&source_type) {
-                return Err(format!("Invalid source type {}.", source_type));
-            }
-        }
-        Ok(())
     }
 }
 
