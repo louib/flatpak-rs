@@ -20,25 +20,28 @@ pub enum FlatpakBuildSystem {
     Simple,
 }
 
-pub fn serialize_to_string<S>(x: &FlatpakBuildSystem, s: S) -> Result<S::Ok, S::Error>
+pub fn serialize_to_string<S>(x: &Option<FlatpakBuildSystem>, s: S) -> Result<S::Ok, S::Error>
 where
     S: Serializer,
 {
-    s.serialize_str(&x.to_string())
+    s.serialize_str(&x.as_ref().unwrap().to_string())
 }
 
-pub fn deserialize_from_string<'de, D>(deserializer: D) -> Result<FlatpakBuildSystem, D::Error>
+pub fn deserialize_from_string<'de, D>(deserializer: D) -> Result<Option<FlatpakBuildSystem>, D::Error>
 where
     D: Deserializer<'de>,
 {
     let buf = String::deserialize(deserializer)?;
 
-    FlatpakBuildSystem::from_string(&buf).map_err(serde::de::Error::custom)
+    match FlatpakBuildSystem::from_string(&buf) {
+        Ok(b) => Ok(Some(b)),
+        Err(e) => Err(e).map_err(serde::de::Error::custom),
+    }
 }
 
 impl Default for FlatpakBuildSystem {
     fn default() -> Self {
-        FlatpakBuildSystem::Simple
+        FlatpakBuildSystem::Autotools
     }
 }
 impl FlatpakBuildSystem {

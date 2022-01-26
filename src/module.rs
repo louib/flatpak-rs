@@ -96,7 +96,7 @@ pub struct FlatpakModule {
     /// Build system to use.
     #[serde(deserialize_with = "crate::build_system::deserialize_from_string")]
     #[serde(serialize_with = "crate::build_system::serialize_to_string")]
-    pub buildsystem: FlatpakBuildSystem,
+    pub buildsystem: Option<FlatpakBuildSystem>,
 
     /// Use a build directory that is separate from the source directory
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -199,7 +199,10 @@ impl FlatpakModule {
         if self.cmake.unwrap_or(false) {
             return Some(crate::build_system::CMAKE.to_string());
         }
-        return Some(self.buildsystem.to_string());
+        if let Some(buildsystem) = &self.buildsystem {
+            return Some(buildsystem.to_string());
+        }
+        None
     }
 
     pub fn is_patched(&self) -> bool {
@@ -553,9 +556,7 @@ mod tests {
 
     #[test]
     pub fn test_parse_extra_data() {
-        match FlatpakModule::parse(
-            FlatpakManifestFormat::YAML,
-            r###"
+        let module_manifest = r###"
             name: wps
             buildsystem: simple
             build-commands:
@@ -591,25 +592,42 @@ mod tests {
                   url: https://linux.wps.com/js/meta.js
                   version-pattern: version\s*=\s*"([\d.-]+)"
                   url-pattern: download_link_deb\s*=\s*"(http[s]?://[\w\d$-_@.&+]+)"
-            "###,
-        ) {
-            Err(e) => std::panic::panic_any(e),
-            Ok(module) => {
-                assert_eq!(module.name, "wps");
-            }
-        }
+        "###;
+        let module = FlatpakModule::parse(FlatpakManifestFormat::YAML, module_manifest).unwrap();
+        assert_eq!(module.name, "wps");
     }
 
     #[test]
     pub fn test_parse_helm_files() {
-        assert!(FlatpakModule::parse(
-            FlatpakManifestFormat::YAML,
-            r###"
+        let helm_file = r###"
             name: wps
             sources:
               - "https://github.com/user/repo"
-            "###,
-        )
-        .is_err())
+        "###;
+        assert!(FlatpakModule::parse(FlatpakManifestFormat::YAML, helm_file,).is_err())
+    }
+
+    #[test]
+    pub fn test_parse_no_buildsystem() {
+        let module_manifest = r###"
+            name: dbus-glib
+            sources:
+              - type: archive
+                url: "https://dbus.freedesktop.org/releases/dbus-glib/dbus-glib-0.110.tar.gz"
+                sha256: 7ce4760cf66c69148f6bd6c92feaabb8812dee30846b24cd0f7395c436d7e825
+            config-opts:
+              - "--disable-static"
+              - "--disable-gtk-doc"
+            cleanup:
+              - "*.la"
+              - /bin
+              - /etc
+              - /include
+              - /libexec
+              - /share/gtk-doc
+              - /share/man
+        "###;
+        let flatpak_application = FlatpakModule::parse(FlatpakManifestFormat::YAML, module_manifest).unwrap();
+        assert!(flatpak_application.buildsystem.is_none())
     }
 }
