@@ -564,6 +564,7 @@ pub struct FlatpakBuildOptions {
     pub no_debuginfo_compression: Option<bool>,
 
     /// This is a dictionary defining for each arch a separate build options object that override the main one.
+    #[serde(skip_serializing_if = "BTreeMap::is_empty")]
     pub arch: BTreeMap<String, FlatpakBuildOptions>,
 }
 
