@@ -6,7 +6,7 @@ use serde::{Deserialize, Serialize};
 
 use crate::build_system::FlatpakBuildSystem;
 use crate::format::FlatpakManifestFormat;
-use crate::source::{FlatpakSource, FlatpakSourceItem, ARCHIVE, GIT, PATCH};
+use crate::source::{FlatpakSourceItem, ARCHIVE, GIT, PATCH};
 
 #[derive(Clone)]
 #[derive(Deserialize)]

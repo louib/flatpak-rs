@@ -377,7 +377,7 @@ impl FlatpakSource {
     }
 
     pub fn parse(format: FlatpakManifestFormat, manifest_content: &str) -> Result<FlatpakSource, String> {
-        let mut flatpak_source: FlatpakSource = match &format {
+        let flatpak_source: FlatpakSource = match &format {
             FlatpakManifestFormat::YAML => match serde_yaml::from_str(&manifest_content) {
                 Ok(m) => m,
                 Err(e) => {
@@ -405,7 +405,7 @@ impl FlatpakSource {
         format: FlatpakManifestFormat,
         manifest_content: &str,
     ) -> Result<Vec<FlatpakSource>, String> {
-        let mut flatpak_sources: Vec<FlatpakSource> = match &format {
+        let flatpak_sources: Vec<FlatpakSource> = match &format {
             FlatpakManifestFormat::YAML => match serde_yaml::from_str(&manifest_content) {
                 Ok(m) => m,
                 Err(e) => {

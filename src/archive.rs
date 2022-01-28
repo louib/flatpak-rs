@@ -50,7 +50,6 @@ impl ArchiveType {
             ArchiveType::TarLzop => TAR_LZOP.to_string(),
             ArchiveType::TarXz => TAR_XZ.to_string(),
             ArchiveType::Zip => ZIP.to_string(),
-            ArchiveType::SevenZip => SEVENZIP.to_string(),
         }
     }
     pub fn from_string(archive_type: &str) -> Result<ArchiveType, String> {
@@ -150,13 +149,13 @@ where
 {
     let archive_type = match String::deserialize(deserializer) {
         Ok(t) => t,
-        Err(e) => return Ok(None),
+        Err(_e) => return Ok(None),
     };
 
     match ArchiveType::from_string(&archive_type) {
         Ok(t) => Ok(Some(t)),
         // Err(e) => Err(e).map_err(serde::de::Error::custom),
-        Err(e) => Ok(None),
+        Err(_e) => Ok(None),
     }
     // ArchiveType::from_string(&buf).map_err(serde::de::Error::custom)
 }
