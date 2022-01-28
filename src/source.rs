@@ -437,6 +437,9 @@ impl FlatpakSource {
                 return Err(e);
             }
         }
+        if self.url.is_none() && self.path.is_none() && self.commands.is_none() {
+            return Err("There should be at least a url, a path or inline commands in a source!".to_string());
+        }
         Ok(())
     }
 
@@ -601,6 +604,18 @@ mod tests {
                     e
                 );
             }
+        }
+    }
+
+    #[test]
+    pub fn test_parse_random_yaml_file() {
+        let source_manifest = r###"
+            title: "Copying the Diagram to the Clipboard"
+            content: []
+            description: "This is where you click for the action to happen"
+        "###;
+        if FlatpakSource::parse(FlatpakManifestFormat::YAML, source_manifest).is_ok() {
+            panic!("We should not parse a random yaml file as a source manifest",);
         }
     }
 }
