@@ -159,6 +159,7 @@ pub struct FlatpakSource {
     #[serde(deserialize_with = "crate::source::deserialize_from_string")]
     #[serde(serialize_with = "crate::source::serialize_to_string")]
     #[serde(skip_serializing_if = "Option::is_none")]
+    #[serde(default)]
     pub r#type: Option<FlatpakSourceType>,
     // pub r#type: Option<String>,
 
@@ -535,6 +536,7 @@ mod tests {
             Err(e) => std::panic::panic_any(e),
             Ok(source) => {
                 assert_eq!(source.path, Some("apply_extra.sh".to_string()));
+                assert_eq!(source.get_type(), Some(FILE.to_string()));
             }
         }
     }
@@ -602,6 +604,7 @@ mod tests {
         match FlatpakSource::parse(FlatpakManifestFormat::YAML, source_manifest) {
             Ok(source) => {
                 assert!(source.url.is_some());
+                assert!(source.get_type().is_none());
             }
             Err(e) => {
                 panic!(
