@@ -32,6 +32,7 @@ lazy_static! {
 #[derive(Deserialize)]
 #[derive(Debug)]
 #[derive(Hash)]
+#[derive(PartialEq)]
 pub enum FlatpakSourceType {
     Archive,
     Git,
@@ -99,20 +100,26 @@ impl FlatpakSourceType {
     }
 }
 
-pub fn serialize_to_string<S>(x: &FlatpakSourceType, s: S) -> Result<S::Ok, S::Error>
+pub fn serialize_to_string<S>(x: &Option<FlatpakSourceType>, s: S) -> Result<S::Ok, S::Error>
 where
     S: Serializer,
 {
-    s.serialize_str(&x.to_string())
+    if let Some(build_system) = x {
+        return s.serialize_str(&build_system.to_string());
+    }
+    panic!("This should not happen.");
 }
 
-pub fn deserialize_from_string<'de, D>(deserializer: D) -> Result<FlatpakSourceType, D::Error>
+pub fn deserialize_from_string<'de, D>(deserializer: D) -> Result<Option<FlatpakSourceType>, D::Error>
 where
     D: Deserializer<'de>,
 {
     let buf = String::deserialize(deserializer)?;
 
-    FlatpakSourceType::from_string(&buf).map_err(serde::de::Error::custom)
+    match FlatpakSourceType::from_string(&buf) {
+        Ok(b) => Ok(Some(b)),
+        Err(e) => Err(e).map_err(serde::de::Error::custom),
+    }
 }
 
 #[derive(Clone)]
@@ -149,8 +156,11 @@ pub struct FlatpakSource {
     /// It is not explicit in the flatpak-manifest man page,
     /// but we only found 1 source in all our dataset with an empty
     /// type, so we assume that the field is actually required.
+    #[serde(deserialize_with = "crate::source::deserialize_from_string")]
+    #[serde(serialize_with = "crate::source::serialize_to_string")]
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub r#type: Option<String>,
+    pub r#type: Option<FlatpakSourceType>,
+    // pub r#type: Option<String>,
 
     /// An array of shell commands.
     /// types: script, shell
@@ -331,7 +341,7 @@ impl FlatpakSource {
     /// Get the type for the Flatpak source.
     pub fn get_type(&self) -> Option<String> {
         if let Some(t) = &self.r#type {
-            return Some(t.clone());
+            return Some(t.to_string());
         }
         None
     }
@@ -432,11 +442,6 @@ impl FlatpakSource {
     }
 
     pub fn is_valid(&self) -> Result<(), String> {
-        if let Some(source_type) = &self.r#type {
-            if let Err(e) = FlatpakSourceType::from_string(&source_type) {
-                return Err(e);
-            }
-        }
         if self.url.is_none() && self.path.is_none() && self.commands.is_none() {
             return Err("There should be at least a url, a path or inline commands in a source!".to_string());
         }
