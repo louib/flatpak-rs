@@ -162,7 +162,6 @@ pub struct FlatpakSource {
     #[serde(default)]
     pub r#type: Option<FlatpakSourceType>,
     // pub r#type: Option<String>,
-
     /// An array of shell commands.
     /// types: script, shell
     #[serde(skip_serializing_if = "Option::is_none")]
