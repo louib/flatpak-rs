@@ -18,14 +18,18 @@ pub const PATCH: &str = "patch";
 pub const EXTRA_DATA: &str = "extra-data";
 
 lazy_static! {
-    pub static ref CODE_TYPES: Vec<String> = vec![
-        ARCHIVE.to_string(),
-        GIT.to_string(),
-        BAZAAR.to_string(),
-        SVN.to_string(),
-        DIR.to_string(),
+    pub static ref CODE_TYPES: Vec<FlatpakSourceType> = vec![
+        FlatpakSourceType::Archive,
+        FlatpakSourceType::Git,
+        FlatpakSourceType::Bazaar,
+        FlatpakSourceType::Svn,
+        FlatpakSourceType::Dir,
     ];
-    pub static ref VCS_TYPES: Vec<String> = vec![GIT.to_string(), BAZAAR.to_string(), SVN.to_string(),];
+    pub static ref VCS_TYPES: Vec<FlatpakSourceType> = vec![
+        FlatpakSourceType::Git,
+        FlatpakSourceType::Bazaar,
+        FlatpakSourceType::Svn,
+    ];
 }
 
 #[derive(Clone)]
@@ -33,6 +37,9 @@ lazy_static! {
 #[derive(Debug)]
 #[derive(Hash)]
 #[derive(PartialEq)]
+/// The Flatpak sources can be of multiple different types, determined
+/// by the `type` field. The type of the Flatpak source will determine which
+/// other fields should be populated.
 pub enum FlatpakSourceType {
     Archive,
     Git,
@@ -51,6 +58,19 @@ impl Default for FlatpakSourceType {
     }
 }
 impl FlatpakSourceType {
+    /// Determines if a Flatpak source points to a code project.
+    /// See [struct@crate::source::CODE_TYPES] for the list of code types.
+    pub fn is_code(&self) -> bool {
+        CODE_TYPES.contains(self)
+    }
+
+    /// Determines if a Flatpak source points to a version-control system
+    /// repository.
+    /// See [struct@crate::source::VCS_TYPES] for the list of VCS types.
+    pub fn is_vcs(&self) -> bool {
+        VCS_TYPES.contains(self)
+    }
+
     pub fn to_string(&self) -> String {
         match &self {
             FlatpakSourceType::Archive => ARCHIVE.to_string(),
@@ -153,15 +173,12 @@ pub enum FlatpakSourceItem {
 /// distinguished by the type property.
 pub struct FlatpakSource {
     /// Defines the type of the source description.
-    /// It is not explicit in the flatpak-manifest man page,
-    /// but we only found 1 source in all our dataset with an empty
-    /// type, so we assume that the field is actually required.
     #[serde(deserialize_with = "crate::source::deserialize_from_string")]
     #[serde(serialize_with = "crate::source::serialize_to_string")]
     #[serde(skip_serializing_if = "Option::is_none")]
     #[serde(default)]
     pub r#type: Option<FlatpakSourceType>,
-    // pub r#type: Option<String>,
+
     /// An array of shell commands.
     /// types: script, shell
     #[serde(skip_serializing_if = "Option::is_none")]

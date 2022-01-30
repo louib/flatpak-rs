@@ -427,8 +427,12 @@ impl FlatpakModule {
                 FlatpakSourceItem::Path(_) => continue,
             };
 
-            let source_type_name = source_description.get_type_name();
-            if crate::source::CODE_TYPES.contains(&source_type_name) {
+            let source_type = match source_description.get_type() {
+                Some(t) => t,
+                None => continue,
+            };
+
+            if source_type.is_code() {
                 code_sources_count += 1;
             }
             if code_sources_count > 1 {
