@@ -18,20 +18,28 @@ pub const PATCH: &str = "patch";
 pub const EXTRA_DATA: &str = "extra-data";
 
 lazy_static! {
-    pub static ref CODE_TYPES: Vec<String> = vec![
-        ARCHIVE.to_string(),
-        GIT.to_string(),
-        BAZAAR.to_string(),
-        SVN.to_string(),
-        DIR.to_string(),
+    pub static ref CODE_TYPES: Vec<FlatpakSourceType> = vec![
+        FlatpakSourceType::Archive,
+        FlatpakSourceType::Git,
+        FlatpakSourceType::Bazaar,
+        FlatpakSourceType::Svn,
+        FlatpakSourceType::Dir,
     ];
-    pub static ref VCS_TYPES: Vec<String> = vec![GIT.to_string(), BAZAAR.to_string(), SVN.to_string(),];
+    pub static ref VCS_TYPES: Vec<FlatpakSourceType> = vec![
+        FlatpakSourceType::Git,
+        FlatpakSourceType::Bazaar,
+        FlatpakSourceType::Svn,
+    ];
 }
 
 #[derive(Clone)]
 #[derive(Deserialize)]
 #[derive(Debug)]
 #[derive(Hash)]
+#[derive(PartialEq)]
+/// The Flatpak sources can be of multiple different types, determined
+/// by the `type` field. The type of the Flatpak source will determine which
+/// other fields should be populated.
 pub enum FlatpakSourceType {
     Archive,
     Git,
@@ -50,6 +58,19 @@ impl Default for FlatpakSourceType {
     }
 }
 impl FlatpakSourceType {
+    /// Determines if a Flatpak source points to a code project.
+    /// See [struct@crate::source::CODE_TYPES] for the list of code types.
+    pub fn is_code(&self) -> bool {
+        CODE_TYPES.contains(self)
+    }
+
+    /// Determines if a Flatpak source points to a version-control system
+    /// repository.
+    /// See [struct@crate::source::VCS_TYPES] for the list of VCS types.
+    pub fn is_vcs(&self) -> bool {
+        VCS_TYPES.contains(self)
+    }
+
     pub fn to_string(&self) -> String {
         match &self {
             FlatpakSourceType::Archive => ARCHIVE.to_string(),
@@ -99,20 +120,26 @@ impl FlatpakSourceType {
     }
 }
 
-pub fn serialize_to_string<S>(x: &FlatpakSourceType, s: S) -> Result<S::Ok, S::Error>
+pub fn serialize_to_string<S>(x: &Option<FlatpakSourceType>, s: S) -> Result<S::Ok, S::Error>
 where
     S: Serializer,
 {
-    s.serialize_str(&x.to_string())
+    if let Some(build_system) = x {
+        return s.serialize_str(&build_system.to_string());
+    }
+    panic!("This should not happen.");
 }
 
-pub fn deserialize_from_string<'de, D>(deserializer: D) -> Result<FlatpakSourceType, D::Error>
+pub fn deserialize_from_string<'de, D>(deserializer: D) -> Result<Option<FlatpakSourceType>, D::Error>
 where
     D: Deserializer<'de>,
 {
     let buf = String::deserialize(deserializer)?;
 
-    FlatpakSourceType::from_string(&buf).map_err(serde::de::Error::custom)
+    match FlatpakSourceType::from_string(&buf) {
+        Ok(b) => Ok(Some(b)),
+        Err(e) => Err(e).map_err(serde::de::Error::custom),
+    }
 }
 
 #[derive(Clone)]
@@ -146,11 +173,11 @@ pub enum FlatpakSourceItem {
 /// distinguished by the type property.
 pub struct FlatpakSource {
     /// Defines the type of the source description.
-    /// It is not explicit in the flatpak-manifest man page,
-    /// but we only found 1 source in all our dataset with an empty
-    /// type, so we assume that the field is actually required.
+    #[serde(deserialize_with = "crate::source::deserialize_from_string")]
+    #[serde(serialize_with = "crate::source::serialize_to_string")]
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub r#type: Option<String>,
+    #[serde(default)]
+    pub r#type: Option<FlatpakSourceType>,
 
     /// An array of shell commands.
     /// types: script, shell
@@ -329,11 +356,8 @@ pub struct FlatpakSource {
 }
 impl FlatpakSource {
     /// Get the type for the Flatpak source.
-    pub fn get_type(&self) -> Option<String> {
-        if let Some(t) = &self.r#type {
-            return Some(t.clone());
-        }
-        None
+    pub fn get_type(&self) -> Option<FlatpakSourceType> {
+        self.r#type.clone()
     }
 
     pub fn file_path_matches(path: &str) -> bool {
@@ -432,11 +456,6 @@ impl FlatpakSource {
     }
 
     pub fn is_valid(&self) -> Result<(), String> {
-        if let Some(source_type) = &self.r#type {
-            if let Err(e) = FlatpakSourceType::from_string(&source_type) {
-                return Err(e);
-            }
-        }
         if self.url.is_none() && self.path.is_none() && self.commands.is_none() {
             return Err("There should be at least a url, a path or inline commands in a source!".to_string());
         }
@@ -481,9 +500,11 @@ impl FlatpakSource {
     }
 
     pub fn supports_mirror_urls(&self) -> bool {
-        let type_name = self.get_type_name();
         // FIXME why are mirror urls not supported for types git, svn and bzr.
-        if type_name == ARCHIVE || type_name == FILE {
+        if self.get_type() == Some(FlatpakSourceType::Archive) {
+            return true;
+        }
+        if self.get_type() == Some(FlatpakSourceType::File) {
             return true;
         }
         return false;
@@ -530,6 +551,7 @@ mod tests {
             Err(e) => std::panic::panic_any(e),
             Ok(source) => {
                 assert_eq!(source.path, Some("apply_extra.sh".to_string()));
+                assert_eq!(source.get_type(), Some(FlatpakSourceType::File));
             }
         }
     }
@@ -597,6 +619,7 @@ mod tests {
         match FlatpakSource::parse(FlatpakManifestFormat::YAML, source_manifest) {
             Ok(source) => {
                 assert!(source.url.is_some());
+                assert!(source.get_type().is_none());
             }
             Err(e) => {
                 panic!(

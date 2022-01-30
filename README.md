@@ -10,6 +10,9 @@ Flatpak library for Rust.
 
 See the [API documentation](https://docs.rs/flatpak/) for this library.
 
+## Usage
+Have a look at the [Usage section](https://docs.rs/flatpak/latest/flatpak/#usage) of the documentation.
+
 ## Installation
 
 Add the library to your `Cargo.toml`:

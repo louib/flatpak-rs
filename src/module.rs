@@ -6,7 +6,7 @@ use serde::{Deserialize, Serialize};
 
 use crate::build_system::FlatpakBuildSystem;
 use crate::format::FlatpakManifestFormat;
-use crate::source::{FlatpakSourceItem, ARCHIVE, GIT, PATCH};
+use crate::source::{FlatpakSourceItem, FlatpakSourceType};
 
 #[derive(Clone)]
 #[derive(Deserialize)]
@@ -213,10 +213,8 @@ impl FlatpakModule {
     pub fn is_patched(&self) -> bool {
         for source in &self.sources {
             if let FlatpakSourceItem::Description(sd) = source {
-                if let Some(t) = &sd.r#type {
-                    if t == PATCH {
-                        return true;
-                    }
+                if sd.get_type() == Some(FlatpakSourceType::Patch) {
+                    return true;
                 }
             }
         }
@@ -329,7 +327,7 @@ impl FlatpakModule {
                 FlatpakSourceItem::Description(d) => d,
                 FlatpakSourceItem::Path(_p) => continue,
             };
-            if source_description.get_type_name() != ARCHIVE {
+            if source_description.get_type() != Some(FlatpakSourceType::Archive) {
                 continue;
             }
 
@@ -349,7 +347,7 @@ impl FlatpakModule {
                 FlatpakSourceItem::Description(d) => d,
                 FlatpakSourceItem::Path(_p) => continue,
             };
-            if source_description.get_type_name() != GIT {
+            if source_description.get_type() != Some(FlatpakSourceType::Git) {
                 continue;
             }
 
@@ -429,8 +427,12 @@ impl FlatpakModule {
                 FlatpakSourceItem::Path(_) => continue,
             };
 
-            let source_type_name = source_description.get_type_name();
-            if crate::source::CODE_TYPES.contains(&source_type_name) {
+            let source_type = match source_description.get_type() {
+                Some(t) => t,
+                None => continue,
+            };
+
+            if source_type.is_code() {
                 code_sources_count += 1;
             }
             if code_sources_count > 1 {
