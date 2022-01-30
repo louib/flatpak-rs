@@ -17,7 +17,7 @@ pub const SEVENZIP: &str = "7z";
 #[derive(Debug)]
 #[derive(Hash)]
 #[derive(PartialEq)]
-pub enum ArchiveType {
+pub enum FlatpakArchiveType {
     Rpm,
     Tar,
     TarGzip,
@@ -31,131 +31,129 @@ pub enum ArchiveType {
     SevenZip,
 }
 
-impl Default for ArchiveType {
+impl Default for FlatpakArchiveType {
     fn default() -> Self {
-        ArchiveType::Rpm
+        FlatpakArchiveType::Rpm
     }
 }
-impl ArchiveType {
+impl FlatpakArchiveType {
     pub fn to_string(&self) -> String {
         match &self {
-            ArchiveType::Rpm => RPM.to_string(),
-            ArchiveType::SevenZip => SEVENZIP.to_string(),
-            ArchiveType::Tar => TAR.to_string(),
-            ArchiveType::TarGzip => TAR_GZIP.to_string(),
-            ArchiveType::TarCompress => TAR_COMPRESS.to_string(),
-            ArchiveType::TarBzip2 => TAR_BZIP2.to_string(),
-            ArchiveType::TarLzip => TAR_LZIP.to_string(),
-            ArchiveType::TarLzma => TAR_LZMA.to_string(),
-            ArchiveType::TarLzop => TAR_LZOP.to_string(),
-            ArchiveType::TarXz => TAR_XZ.to_string(),
-            ArchiveType::Zip => ZIP.to_string(),
+            FlatpakArchiveType::Rpm => RPM.to_string(),
+            FlatpakArchiveType::SevenZip => SEVENZIP.to_string(),
+            FlatpakArchiveType::Tar => TAR.to_string(),
+            FlatpakArchiveType::TarGzip => TAR_GZIP.to_string(),
+            FlatpakArchiveType::TarCompress => TAR_COMPRESS.to_string(),
+            FlatpakArchiveType::TarBzip2 => TAR_BZIP2.to_string(),
+            FlatpakArchiveType::TarLzip => TAR_LZIP.to_string(),
+            FlatpakArchiveType::TarLzma => TAR_LZMA.to_string(),
+            FlatpakArchiveType::TarLzop => TAR_LZOP.to_string(),
+            FlatpakArchiveType::TarXz => TAR_XZ.to_string(),
+            FlatpakArchiveType::Zip => ZIP.to_string(),
         }
     }
-    pub fn from_string(archive_type: &str) -> Result<ArchiveType, String> {
+    pub fn from_string(archive_type: &str) -> Result<FlatpakArchiveType, String> {
         if archive_type == RPM {
-            return Ok(ArchiveType::Rpm);
+            return Ok(FlatpakArchiveType::Rpm);
         }
         if archive_type == SEVENZIP {
-            return Ok(ArchiveType::SevenZip);
+            return Ok(FlatpakArchiveType::SevenZip);
         }
         if archive_type == ZIP {
-            return Ok(ArchiveType::Zip);
+            return Ok(FlatpakArchiveType::Zip);
         }
         if archive_type == TAR {
-            return Ok(ArchiveType::Tar);
+            return Ok(FlatpakArchiveType::Tar);
         }
         if archive_type == TAR_XZ {
-            return Ok(ArchiveType::TarXz);
+            return Ok(FlatpakArchiveType::TarXz);
         }
         if archive_type == TAR_LZOP {
-            return Ok(ArchiveType::TarLzop);
+            return Ok(FlatpakArchiveType::TarLzop);
         }
         if archive_type == TAR_COMPRESS {
-            return Ok(ArchiveType::TarCompress);
+            return Ok(FlatpakArchiveType::TarCompress);
         }
         if archive_type == TAR_BZIP2 {
-            return Ok(ArchiveType::TarBzip2);
+            return Ok(FlatpakArchiveType::TarBzip2);
         }
         if archive_type == TAR_GZIP {
-            return Ok(ArchiveType::TarGzip);
+            return Ok(FlatpakArchiveType::TarGzip);
         }
         if archive_type == TAR_LZIP {
-            return Ok(ArchiveType::TarLzip);
+            return Ok(FlatpakArchiveType::TarLzip);
         }
         if archive_type == TAR_LZMA {
-            return Ok(ArchiveType::TarLzma);
+            return Ok(FlatpakArchiveType::TarLzma);
         }
         if archive_type == TAR_LZOP {
-            return Ok(ArchiveType::TarLzop);
+            return Ok(FlatpakArchiveType::TarLzop);
         }
         Err(format!("Invalid archive type {}.", archive_type))
     }
 
     /// Detects the archive type from a path or a URL, using
     /// the extension only.
-    pub fn from_path(path: &str) -> Option<ArchiveType> {
+    pub fn from_path(path: &str) -> Option<FlatpakArchiveType> {
         let path = path.to_lowercase();
         if path.ends_with(".tar") {
-            return Some(ArchiveType::Tar);
+            return Some(FlatpakArchiveType::Tar);
         }
         if path.ends_with(".tar.gz") || path.ends_with(".tgz") || path.ends_with(".taz") {
-            return Some(ArchiveType::TarGzip);
+            return Some(FlatpakArchiveType::TarGzip);
         }
         if path.ends_with(".tar.z") || path.ends_with(".taz") {
-            return Some(ArchiveType::TarCompress);
+            return Some(FlatpakArchiveType::TarCompress);
         }
         if path.ends_with(".tar.bz2") || path.ends_with(".tz2") {
-            return Some(ArchiveType::TarBzip2);
+            return Some(FlatpakArchiveType::TarBzip2);
         }
         if path.ends_with(".tbz2") || path.ends_with(".tbz") {
-            return Some(ArchiveType::TarBzip2);
+            return Some(FlatpakArchiveType::TarBzip2);
         }
         if path.ends_with(".tar.lz") {
-            return Some(ArchiveType::TarLzip);
+            return Some(FlatpakArchiveType::TarLzip);
         }
         if path.ends_with(".tar.lzma") || path.ends_with(".tlz") {
-            return Some(ArchiveType::TarLzma);
+            return Some(FlatpakArchiveType::TarLzma);
         }
         if path.ends_with(".tar.lzo") {
-            return Some(ArchiveType::TarLzop);
+            return Some(FlatpakArchiveType::TarLzop);
         }
         if path.ends_with(".tar.xz") || path.ends_with(".txz") {
-            return Some(ArchiveType::TarXz);
+            return Some(FlatpakArchiveType::TarXz);
         }
         if path.ends_with(".zip") {
-            return Some(ArchiveType::Zip);
+            return Some(FlatpakArchiveType::Zip);
         }
         if path.ends_with(".rpm") {
-            return Some(ArchiveType::Rpm);
+            return Some(FlatpakArchiveType::Rpm);
         }
         if path.ends_with(".7z") {
-            return Some(ArchiveType::SevenZip);
+            return Some(FlatpakArchiveType::SevenZip);
         }
         None
     }
 }
 
-pub fn serialize_to_string<S>(x: &Option<ArchiveType>, s: S) -> Result<S::Ok, S::Error>
+pub fn serialize_to_string<S>(x: &Option<FlatpakArchiveType>, s: S) -> Result<S::Ok, S::Error>
 where
     S: Serializer,
 {
-    s.serialize_str(&x.as_ref().unwrap().to_string())
+    if let Some(build_system) = x {
+        return s.serialize_str(&build_system.to_string());
+    }
+    panic!("This should not happen.");
 }
 
-pub fn deserialize_from_string<'de, D>(deserializer: D) -> Result<Option<ArchiveType>, D::Error>
+pub fn deserialize_from_string<'de, D>(deserializer: D) -> Result<Option<FlatpakArchiveType>, D::Error>
 where
     D: Deserializer<'de>,
 {
-    let archive_type = match String::deserialize(deserializer) {
-        Ok(t) => t,
-        Err(_e) => return Ok(None),
-    };
+    let buf = String::deserialize(deserializer)?;
 
-    match ArchiveType::from_string(&archive_type) {
-        Ok(t) => Ok(Some(t)),
-        // Err(e) => Err(e).map_err(serde::de::Error::custom),
-        Err(_e) => Ok(None),
+    match FlatpakArchiveType::from_string(&buf) {
+        Ok(b) => Ok(Some(b)),
+        Err(e) => Err(e).map_err(serde::de::Error::custom),
     }
-    // ArchiveType::from_string(&buf).map_err(serde::de::Error::custom)
 }

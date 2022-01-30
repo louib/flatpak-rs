@@ -4,6 +4,7 @@ use std::path;
 use lazy_static::lazy_static;
 use serde::{Deserialize, Deserializer, Serialize, Serializer};
 
+use crate::archive::FlatpakArchiveType;
 use crate::format::FlatpakManifestFormat;
 
 pub const ARCHIVE: &str = "archive";
@@ -264,21 +265,12 @@ pub struct FlatpakSource {
     pub branch: Option<String>,
 
     /// The type of archive if it cannot be guessed from the path.
-    /// Possible values are:
-    ///   * "rpm",
-    ///   * "tar",
-    ///   * "tar-gzip",
-    ///   * "tar-compress",
-    ///   * "tar-bzip2",
-    ///   * "tar-lzip",
-    ///   * "tar-lzma",
-    ///   * "tar-lzop",
-    ///   * "tar-xz",
-    ///   * "zip",
-    ///   * "7z",
     /// types: archive
+    #[serde(deserialize_with = "crate::archive::deserialize_from_string")]
+    #[serde(serialize_with = "crate::archive::serialize_to_string")]
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub archive_type: Option<String>,
+    #[serde(default)]
+    pub archive_type: Option<FlatpakArchiveType>,
 
     /// The commit to use from the git repository.
     /// If branch is also specified, then it is verified that the branch/tag is at this specific commit.
@@ -603,7 +595,7 @@ mod tests {
     }
 
     #[test]
-    pub fn test_parse_invalid_source_type() {
+    pub fn test_parse_invalid_type() {
         let source_manifest = r###"
             type: not_a_valid_source_type
             path: apply_extra.sh
@@ -614,6 +606,45 @@ mod tests {
             }
             Err(e) => {
                 assert!(e.to_string().contains("Invalid source type"));
+            }
+        }
+    }
+
+    #[test]
+    pub fn test_parse_archive_type() {
+        let source_manifest = r###"
+            type: archive
+            url: https://ftp.gnu.org/gnu/glibc/glibc-2.0.1.tar.gz
+            archive_type: tar-gz
+        "###;
+        match FlatpakSource::parse(FlatpakManifestFormat::YAML, source_manifest) {
+            Ok(source) => {
+                assert!(source.url.is_some());
+                assert_eq!(source.get_type(), Some(FlatpakSourceType::Archive));
+            }
+            Err(e) => {
+                panic!(
+                    "We should be able to parse a source manifest with an archive type: {}",
+                    e
+                );
+            }
+        }
+    }
+
+    #[test]
+    pub fn test_parse_invalid_archive_type() {
+        let source_manifest = r###"
+            type: archive
+            archive-type: blahblah
+            url: https://ftp.gnu.org/gnu/glibc/glibc-2.0.1.tar.gz
+        "###;
+        match FlatpakSource::parse(FlatpakManifestFormat::YAML, source_manifest) {
+            Ok(_source) => {
+                println!("{:?}", _source);
+                panic!("We should not be able to parse a source manifest with an invalid source type");
+            }
+            Err(e) => {
+                assert!(e.to_string().contains("Invalid archive type"));
             }
         }
     }
