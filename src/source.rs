@@ -71,6 +71,18 @@ impl FlatpakSourceType {
         VCS_TYPES.contains(self)
     }
 
+    /// Determines if mirror urls can be used with that source type.
+    pub fn supports_mirror_urls(&self) -> bool {
+        // FIXME why are mirror urls not supported for types git, svn and bzr?
+        if *self == FlatpakSourceType::Archive {
+            return true;
+        }
+        if *self == FlatpakSourceType::File {
+            return true;
+        }
+        false
+    }
+
     pub fn to_string(&self) -> String {
         match &self {
             FlatpakSourceType::Archive => ARCHIVE.to_string(),
@@ -493,19 +505,15 @@ impl FlatpakSource {
     }
 
     pub fn get_type_name(&self) -> String {
-        if let Some(t) = &self.r#type {
+        if let Some(t) = self.get_type() {
             return t.to_string();
         }
         return "empty".to_string();
     }
 
     pub fn supports_mirror_urls(&self) -> bool {
-        // FIXME why are mirror urls not supported for types git, svn and bzr.
-        if self.get_type() == Some(FlatpakSourceType::Archive) {
-            return true;
-        }
-        if self.get_type() == Some(FlatpakSourceType::File) {
-            return true;
+        if let Some(t) = self.get_type() {
+            return t.supports_mirror_urls();
         }
         return false;
     }
