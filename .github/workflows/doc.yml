@@ -1,6 +1,16 @@
 name: doc
 
-on: [push, pull_request]
+on:
+  pull_request:
+    types: [opened, updated, synchronize, ready_for_review, review_requested]
+    branches:
+      - master
+    paths:
+      - "**"
+  push:
+    branches:
+      - master
+
 
 jobs:
   doc:
