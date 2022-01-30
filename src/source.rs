@@ -339,11 +339,8 @@ pub struct FlatpakSource {
 }
 impl FlatpakSource {
     /// Get the type for the Flatpak source.
-    pub fn get_type(&self) -> Option<String> {
-        if let Some(t) = &self.r#type {
-            return Some(t.to_string());
-        }
-        None
+    pub fn get_type(&self) -> Option<FlatpakSourceType> {
+        self.r#type.clone()
     }
 
     pub fn file_path_matches(path: &str) -> bool {
@@ -486,9 +483,11 @@ impl FlatpakSource {
     }
 
     pub fn supports_mirror_urls(&self) -> bool {
-        let type_name = self.get_type_name();
         // FIXME why are mirror urls not supported for types git, svn and bzr.
-        if type_name == ARCHIVE || type_name == FILE {
+        if self.get_type() == Some(FlatpakSourceType::Archive) {
+            return true;
+        }
+        if self.get_type() == Some(FlatpakSourceType::File) {
             return true;
         }
         return false;
@@ -535,7 +534,7 @@ mod tests {
             Err(e) => std::panic::panic_any(e),
             Ok(source) => {
                 assert_eq!(source.path, Some("apply_extra.sh".to_string()));
-                assert_eq!(source.get_type(), Some(FILE.to_string()));
+                assert_eq!(source.get_type(), Some(FlatpakSourceType::File));
             }
         }
     }

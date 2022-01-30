@@ -6,7 +6,7 @@ use serde::{Deserialize, Serialize};
 
 use crate::build_system::FlatpakBuildSystem;
 use crate::format::FlatpakManifestFormat;
-use crate::source::{FlatpakSourceItem, FlatpakSourceType, ARCHIVE, GIT};
+use crate::source::{FlatpakSourceItem, FlatpakSourceType};
 
 #[derive(Clone)]
 #[derive(Deserialize)]
@@ -213,10 +213,8 @@ impl FlatpakModule {
     pub fn is_patched(&self) -> bool {
         for source in &self.sources {
             if let FlatpakSourceItem::Description(sd) = source {
-                if let Some(t) = &sd.r#type {
-                    if *t == FlatpakSourceType::Patch {
-                        return true;
-                    }
+                if sd.get_type() == Some(FlatpakSourceType::Patch) {
+                    return true;
                 }
             }
         }
@@ -329,7 +327,7 @@ impl FlatpakModule {
                 FlatpakSourceItem::Description(d) => d,
                 FlatpakSourceItem::Path(_p) => continue,
             };
-            if source_description.get_type_name() != ARCHIVE {
+            if source_description.get_type() != Some(FlatpakSourceType::Archive) {
                 continue;
             }
 
@@ -349,7 +347,7 @@ impl FlatpakModule {
                 FlatpakSourceItem::Description(d) => d,
                 FlatpakSourceItem::Path(_p) => continue,
             };
-            if source_description.get_type_name() != GIT {
+            if source_description.get_type() != Some(FlatpakSourceType::Git) {
                 continue;
             }
 
