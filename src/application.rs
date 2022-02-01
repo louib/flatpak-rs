@@ -387,7 +387,7 @@ impl FlatpakApplication {
 #[derive(Hash)]
 #[serde(rename_all = "kebab-case")]
 #[serde(default)]
-/// Extension define extension points in the app/runtime that can be implemented by extensions,
+/// Extensions define extension points in the app/runtime that can be implemented by extensions,
 /// supplying extra files which are available during runtime.
 ///
 /// Additionally the standard flatpak extension properties are supported, and put
