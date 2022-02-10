@@ -481,23 +481,18 @@ mod tests {
 
     #[test]
     pub fn test_parse_missing_fields() {
-        assert!(FlatpakApplication::parse(
-            FlatpakManifestFormat::YAML,
-            r###"
+        let application_manifest = r###"
             runtime: org.gnome.Platform
             runtime-version: "3.36"
             sdk: org.gnome.Sdk
             command: flatpak-rs
-            "###
-        )
-        .is_err());
+        "###;
+        assert!(FlatpakApplication::parse(FlatpakManifestFormat::YAML, application_manifest).is_err());
     }
 
     #[test]
     pub fn test_parse() {
-        match FlatpakApplication::parse(
-            FlatpakManifestFormat::YAML,
-            r###"
+        let application_manifest = r###"
             app-id: net.louib.flatpak-rs
             runtime: org.gnome.Platform
             runtime-version: "3.36"
@@ -515,20 +510,18 @@ mod tests {
                     type: git
                     url: https://github.com/louib/flatpak-rs.git
                     branch: master
-            "###,
-        ) {
+        "###;
+        match FlatpakApplication::parse(FlatpakManifestFormat::YAML, application_manifest) {
             Err(e) => std::panic::panic_any(e),
-            Ok(manifest) => {
-                assert_eq!(manifest.app_id, "net.louib.flatpak-rs");
+            Ok(app) => {
+                assert_eq!(app.get_id(), "net.louib.flatpak-rs");
             }
         }
     }
 
     #[test]
-    pub fn test_parse_shared_modules() {
-        match FlatpakApplication::parse(
-            FlatpakManifestFormat::YAML,
-            r###"
+    pub fn test_parse_external_modules() {
+        let application_manifest = r###"
             app-id: net.louib.flatpak-rs
             runtime: org.gnome.Platform
             runtime-version: "3.36"
@@ -548,20 +541,18 @@ mod tests {
                     branch: master
               -
                 "shared-modules/linux-audio/lv2.json"
-            "###,
-        ) {
+        "###;
+        match FlatpakApplication::parse(FlatpakManifestFormat::YAML, application_manifest) {
             Err(e) => std::panic::panic_any(e),
-            Ok(manifest) => {
-                assert_eq!(manifest.app_id, "net.louib.flatpak-rs");
+            Ok(app) => {
+                assert_eq!(app.get_id(), "net.louib.flatpak-rs");
             }
         }
     }
 
     #[test]
     pub fn test_parse_add_extensions() {
-        match FlatpakApplication::parse(
-            FlatpakManifestFormat::YAML,
-            r###"
+        let application_manifest = r###"
             app-id: net.pcsx2.PCSX2
             runtime: org.freedesktop.Platform
             runtime-version: "19.08"
@@ -588,21 +579,19 @@ mod tests {
                     merge-dirs: "vulkan/icd.d;glvnd/egl_vendor.d"
                     download-if: "active-gl-driver"
                     enable-if: "active-gl-driver"
-            "###,
-        ) {
+        "###;
+        match FlatpakApplication::parse(FlatpakManifestFormat::YAML, application_manifest) {
             Err(e) => std::panic::panic_any(e),
-            Ok(manifest) => {
-                assert_eq!(manifest.app_id, "net.pcsx2.PCSX2");
-                assert_eq!(manifest.add_extensions.len(), 3);
+            Ok(app) => {
+                assert_eq!(app.get_id(), "net.pcsx2.PCSX2");
+                assert_eq!(app.add_extensions.len(), 3);
             }
         }
     }
 
     #[test]
     pub fn test_parse_string_source() {
-        match FlatpakApplication::parse(
-            FlatpakManifestFormat::YAML,
-            r###"
+        let application_manifest = r###"
             app-id: net.louib.flatpak-rs
             runtime: org.gnome.Platform
             runtime-version: "3.36"
@@ -618,20 +607,18 @@ mod tests {
                 sources:
                   -
                     "shared-modules/linux-audio/lv2.json"
-            "###,
-        ) {
+        "###;
+        match FlatpakApplication::parse(FlatpakManifestFormat::YAML, application_manifest) {
             Err(e) => std::panic::panic_any(e),
-            Ok(manifest) => {
-                assert_eq!(manifest.app_id, "net.louib.flatpak-rs");
+            Ok(app) => {
+                assert_eq!(app.get_id(), "net.louib.flatpak-rs");
             }
         }
     }
 
     #[test]
     pub fn test_parse_source_without_type() {
-        match FlatpakApplication::parse(
-            FlatpakManifestFormat::YAML,
-            r###"
+        let application_manifest = r###"
             app-id: net.louib.flatpak-rs
             runtime: org.gnome.Platform
             runtime-version: "3.36"
@@ -649,92 +636,21 @@ mod tests {
                     url: "https://ftp.gnu.org/gnu/gcc/gcc-7.5.0/gcc-7.5.0.tar.xz"
                     sha256: "b81946e7f01f90528a1f7352ab08cc602b9ccc05d4e44da4bd501c5a189ee661"
 
-            "###,
-        ) {
-            Err(e) => std::panic::panic_any(e),
-            Ok(manifest) => {
-                assert_eq!(manifest.app_id, "net.louib.flatpak-rs");
-            }
-        }
-    }
-
-    #[test]
-    pub fn test_parse_build_options() {
+        "###;
         match FlatpakApplication::parse(
             FlatpakManifestFormat::YAML,
-            r###"
-            app-id: net.louib.flatpak-rs
-            runtime: org.gnome.Platform
-            runtime-version: "3.36"
-            sdk: org.gnome.Sdk
-            command: flatpak-rs
-            tags: ["nightly"]
-            modules:
-              -
-                name: "flatpak-rs"
-                buildsystem: simple
-                cleanup: [ "*" ]
-                build-options:
-                   cflags: "-O2 -g"
-                   cxxflags: "-O2 -g"
-                   env:
-                       V: "1"
-                   arch:
-                       x86_64:
-                           cflags: "-O3 -g"
-                config-opts: []
-                sources:
-                  -
-                    "shared-modules/linux-audio/lv2.json"
-            "###,
+            application_manifest,
         ) {
             Err(e) => std::panic::panic_any(e),
-            Ok(manifest) => {
-                assert_eq!(manifest.app_id, "net.louib.flatpak-rs");
-            }
-        }
-    }
-
-    #[test]
-    pub fn test_parse_script_source() {
-        match FlatpakApplication::parse(
-            FlatpakManifestFormat::YAML,
-            r###"
-            app-id: net.louib.flatpak-rs
-            runtime: org.gnome.Platform
-            runtime-version: "3.36"
-            sdk: org.gnome.Sdk
-            command: flatpak-rs
-            tags: ["nightly"]
-            modules:
-              -
-                name: "flatpak-rs"
-                buildsystem: simple
-                cleanup: [ "*" ]
-                config-opts: []
-                sources:
-                  -
-                    url: "https://ftp.gnu.org/gnu/gcc/gcc-7.5.0/gcc-7.5.0.tar.xz"
-                    sha256: "b81946e7f01f90528a1f7352ab08cc602b9ccc05d4e44da4bd501c5a189ee661"
-                  -
-                    type: "shell"
-                    commands:
-                      -
-                        sed -i -e 's/\${\${NAME}_BIN}-NOTFOUND/\${NAME}_BIN-NOTFOUND/' cpp/CMakeLists.txt
-            "###,
-        ) {
-            Err(e) => std::panic::panic_any(e),
-            Ok(manifest) => {
-                assert_eq!(manifest.app_id, "net.louib.flatpak-rs");
+            Ok(application) => {
+                assert_eq!(application.get_id(), "net.louib.flatpak-rs");
             }
         }
     }
 
     #[test]
     pub fn test_parse_json() {
-        match FlatpakApplication::parse(
-            FlatpakManifestFormat::JSON,
-            r###"
+        let application_manifest = r###"
             {
                 "app-id": "org.gnome.SoundJuicer",
                 "runtime": "org.gnome.Platform",
@@ -790,20 +706,18 @@ mod tests {
                     }
                 ]
             }
-            "###,
-        ) {
+        "###;
+        match FlatpakApplication::parse(FlatpakManifestFormat::JSON, application_manifest) {
             Err(e) => std::panic::panic_any(e),
-            Ok(manifest) => {
-                assert_eq!(manifest.app_id, "org.gnome.SoundJuicer");
+            Ok(app) => {
+                assert_eq!(app.get_id(), "org.gnome.SoundJuicer");
             }
         }
     }
 
     #[test]
     pub fn test_parse_json_with_comments() {
-        match FlatpakApplication::parse(
-            FlatpakManifestFormat::JSON,
-            r###"
+        let application_manifest = r###"
             {
                 "app-id": "org.gnome.SoundJuicer",
                 "runtime": "org.gnome.Platform",
@@ -877,20 +791,18 @@ mod tests {
                     }
                 ]
             }
-            "###,
-        ) {
+        "###;
+        match FlatpakApplication::parse(FlatpakManifestFormat::JSON, application_manifest) {
             Err(e) => std::panic::panic_any(e),
-            Ok(manifest) => {
-                assert_eq!(manifest.app_id, "org.gnome.SoundJuicer");
+            Ok(app) => {
+                assert_eq!(app.get_id(), "org.gnome.SoundJuicer");
             }
         }
     }
 
     #[test]
     pub fn test_parse_json_with_multi_line_comments() {
-        match FlatpakApplication::parse(
-            FlatpakManifestFormat::JSON,
-            r###"
+        let application_manifest = r###"
             {
               "app-id": "org.gnome.Lollypop",
               "runtime": "org.gnome.Platform",
@@ -934,51 +846,47 @@ mod tests {
                 }
               ]
             }
-            "###,
-        ) {
+        "###;
+        match FlatpakApplication::parse(FlatpakManifestFormat::JSON, application_manifest) {
             Err(e) => std::panic::panic_any(e),
-            Ok(manifest) => {
-                assert_eq!(manifest.app_id, "org.gnome.Lollypop");
+            Ok(app) => {
+                assert_eq!(app.get_id(), "org.gnome.Lollypop");
             }
         }
     }
 
     #[test]
     pub fn test_parse_extension() {
-        match FlatpakApplication::parse(
-            FlatpakManifestFormat::JSON,
-            r###"
-            {
-                "id": "org.freedesktop.Platform.Icontheme.Paper",
-                "branch": "1.0",
-                "runtime": "org.freedesktop.Sdk",
-                "build-extension": true,
-                "sdk": "org.freedesktop.Sdk",
-                "runtime-version": "1.6",
-                "sdk-extensions": [],
-                "separate-locales": false,
-                "cleanup": [ "/share/info", "/share/man" ],
-                "appstream-compose": false,
-                "build-options" : {
-                    "prefix": "/usr/share/runtime"
-                },
-                "modules": []
-            }
-            "###,
-        ) {
+        let extension_manifest = r###"
+        {
+            "id": "org.freedesktop.Platform.Icontheme.Paper",
+            "branch": "1.0",
+            "runtime": "org.freedesktop.Sdk",
+            "build-extension": true,
+            "sdk": "org.freedesktop.Sdk",
+            "runtime-version": "1.6",
+            "sdk-extensions": [],
+            "separate-locales": false,
+            "cleanup": [ "/share/info", "/share/man" ],
+            "appstream-compose": false,
+            "build-options" : {
+                "prefix": "/usr/share/runtime"
+            },
+            "modules": []
+        }
+        "###;
+        match FlatpakApplication::parse(FlatpakManifestFormat::JSON, extension_manifest) {
             Err(e) => std::panic::panic_any(e),
-            Ok(manifest) => {
-                assert_eq!(manifest.id, "org.freedesktop.Platform.Icontheme.Paper");
-                assert_eq!(manifest.get_id(), "org.freedesktop.Platform.Icontheme.Paper");
+            Ok(app) => {
+                assert_eq!(app.id, "org.freedesktop.Platform.Icontheme.Paper");
+                assert_eq!(app.get_id(), "org.freedesktop.Platform.Icontheme.Paper");
             }
         }
     }
 
     #[test]
     pub fn test_parse_recursive_modules() {
-        match FlatpakApplication::parse(
-            FlatpakManifestFormat::YAML,
-            r###"
+        let application_manifest = r###"
             app-id: com.georgefb.haruna
             runtime: org.kde.Platform
             runtime-version: '5.15'
@@ -1148,14 +1056,14 @@ mod tests {
                       - type: archive
                         url: 'https://github.com/ytdl-org/youtube-dl/archive/2021.04.26.tar.gz'
                         sha256: 'd80023ab221b3cb89229b632e247035a22c5afaee9a7b3c653bbd702f71c1083'
-            "###,
-        ) {
+        "###;
+        match FlatpakApplication::parse(FlatpakManifestFormat::YAML, application_manifest) {
             Err(e) => std::panic::panic_any(e),
-            Ok(manifest) => {
-                assert_eq!(manifest.app_id, "com.georgefb.haruna");
-                assert_eq!(manifest.get_max_depth(), 3);
-                assert_eq!(manifest.modules.len(), 1);
-                assert_eq!(manifest.get_all_modules_recursively().len(), 12);
+            Ok(app) => {
+                assert_eq!(app.get_id(), "com.georgefb.haruna");
+                assert_eq!(app.get_max_depth(), 3);
+                assert_eq!(app.modules.len(), 1);
+                assert_eq!(app.get_all_modules_recursively().len(), 12);
             }
         }
     }

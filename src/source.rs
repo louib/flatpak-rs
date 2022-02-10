@@ -636,6 +636,27 @@ mod tests {
     }
 
     #[test]
+    pub fn test_parse_shell_type() {
+        let source_manifest = r###"
+            type: "shell"
+            commands:
+              -
+                sed -i -e 's/\${\${NAME}_BIN}-NOTFOUND/\${NAME}_BIN-NOTFOUND/' cpp/CMakeLists.txt
+        "###;
+        match FlatpakSource::parse(FlatpakManifestFormat::YAML, source_manifest) {
+            Ok(source) => {
+                assert_eq!(source.get_type(), Some(FlatpakSourceType::Shell));
+            }
+            Err(e) => {
+                panic!(
+                    "We should be able to parse a source manifest with a shell type: {}",
+                    e
+                );
+            }
+        }
+    }
+
+    #[test]
     pub fn test_parse_invalid_archive_type() {
         let source_manifest = r###"
             type: archive

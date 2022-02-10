@@ -575,6 +575,36 @@ mod tests {
     use super::*;
 
     #[test]
+    pub fn test_parse_build_options() {
+        let module_manifest = r###"
+            name: "flatpak-rs"
+            buildsystem: simple
+            cleanup: [ "*" ]
+            build-options:
+               cflags: "-O2 -g"
+               cxxflags: "-O2 -g"
+               env:
+                   V: "1"
+               arch:
+                   x86_64:
+                       cflags: "-O3 -g"
+            config-opts: []
+            sources:
+              -
+                "shared-modules/linux-audio/lv2.json"
+        "###;
+        match FlatpakModule::parse(
+            FlatpakManifestFormat::YAML,
+            module_manifest,
+        ) {
+            Err(e) => std::panic::panic_any(e),
+            Ok(module) => {
+                assert_eq!(module.name, "flatpak-rs");
+            }
+        }
+    }
+
+    #[test]
     pub fn test_parse_extra_data() {
         let module_manifest = r###"
             name: wps
