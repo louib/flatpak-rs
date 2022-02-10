@@ -593,10 +593,7 @@ mod tests {
               -
                 "shared-modules/linux-audio/lv2.json"
         "###;
-        match FlatpakModule::parse(
-            FlatpakManifestFormat::YAML,
-            module_manifest,
-        ) {
+        match FlatpakModule::parse(FlatpakManifestFormat::YAML, module_manifest) {
             Err(e) => std::panic::panic_any(e),
             Ok(module) => {
                 assert_eq!(module.name, "flatpak-rs");

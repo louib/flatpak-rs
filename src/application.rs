@@ -637,10 +637,7 @@ mod tests {
                     sha256: "b81946e7f01f90528a1f7352ab08cc602b9ccc05d4e44da4bd501c5a189ee661"
 
         "###;
-        match FlatpakApplication::parse(
-            FlatpakManifestFormat::YAML,
-            application_manifest,
-        ) {
+        match FlatpakApplication::parse(FlatpakManifestFormat::YAML, application_manifest) {
             Err(e) => std::panic::panic_any(e),
             Ok(application) => {
                 assert_eq!(application.get_id(), "net.louib.flatpak-rs");
