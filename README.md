@@ -20,6 +20,8 @@ Add the library to your `Cargo.toml`:
 flatpak = "0"
 ```
 
+Note that this library is aliased as both `flatpak` and `flatpak-rs` on crates.io.
+
 ## Usage
 All three denominations of Flatpak manifests can be parsed using this library,
 using the `FlatpakApplication`, `FlatpakModule` and `FlatpakSource` structs.
@@ -77,8 +79,6 @@ fn main() {
 }
 
 ```
-
-Note that this library is aliased as both `flatpak` and `flatpak-rs` on crates.io.
 
 ## License
 MIT
