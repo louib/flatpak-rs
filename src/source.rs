@@ -451,6 +451,10 @@ impl FlatpakSource {
             }
         };
 
+        if flatpak_sources.len() == 0 {
+            return Err("Empty array is not a valid source manifest!".to_string());
+        }
+
         for flatpak_source in &flatpak_sources {
             if let Err(e) = flatpak_source.is_valid() {
                 return Err(e);
@@ -686,6 +690,9 @@ mod tests {
         let source_manifest = "[]";
         if FlatpakSource::parse(FlatpakManifestFormat::JSON, source_manifest).is_ok() {
             panic!("We should not parse an empty json array as a source manifest",);
+        }
+        if FlatpakSource::parse_many(FlatpakManifestFormat::JSON, source_manifest).is_ok() {
+            panic!("We should not parse an empty json array as many source manifests",);
         }
     }
 }
