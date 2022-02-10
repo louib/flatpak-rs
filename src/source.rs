@@ -680,4 +680,12 @@ mod tests {
             panic!("We should not parse a random yaml file as a source manifest",);
         }
     }
+
+    #[test]
+    pub fn test_parse_empty_array() {
+        let source_manifest = "[]";
+        if FlatpakSource::parse(FlatpakManifestFormat::JSON, source_manifest).is_ok() {
+            panic!("We should not parse an empty json array as a source manifest",);
+        }
+    }
 }
