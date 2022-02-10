@@ -25,7 +25,7 @@ All three denominations of Flatpak manifests can be parsed using this library,
 using the `FlatpakApplication`, `FlatpakModule` and `FlatpakSource` structs.
 
 ### Parse from a string
-```
+```rust
 use flatpak_rs::application::FlatpakApplication;
 use flatpak_rs::format::FlatpakManifestFormat;
 
@@ -59,7 +59,7 @@ assert_eq!(application.modules.len(), 2 as usize);
 println!("Parsed application manifest for {}.", &application.app_id);
 ```
 ### Parse from a file
-```
+```rust
 use std::env;
 
 use flatpak_rs::application::FlatpakApplication;
