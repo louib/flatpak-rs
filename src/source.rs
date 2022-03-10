@@ -98,6 +98,7 @@ impl FlatpakSourceType {
             FlatpakSourceType::ExtraData => EXTRA_DATA.to_string(),
         }
     }
+
     pub fn from_string(source_type: &str) -> Result<FlatpakSourceType, String> {
         if source_type == ARCHIVE {
             return Ok(FlatpakSourceType::Archive);
@@ -131,27 +132,27 @@ impl FlatpakSourceType {
         }
         Err(format!("Invalid source type {}.", source_type))
     }
-}
 
-pub fn serialize_to_string<S>(x: &Option<FlatpakSourceType>, s: S) -> Result<S::Ok, S::Error>
-where
-    S: Serializer,
-{
-    if let Some(build_system) = x {
-        return s.serialize_str(&build_system.to_string());
+    pub fn serialize<S>(x: &Option<FlatpakSourceType>, s: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        if let Some(build_system) = x {
+            return s.serialize_str(&build_system.to_string());
+        }
+        panic!("This should not happen.");
     }
-    panic!("This should not happen.");
-}
 
-pub fn deserialize_from_string<'de, D>(deserializer: D) -> Result<Option<FlatpakSourceType>, D::Error>
-where
-    D: Deserializer<'de>,
-{
-    let buf = String::deserialize(deserializer)?;
+    pub fn deserialization<'de, D>(deserializer: D) -> Result<Option<FlatpakSourceType>, D::Error>
+    where
+        D: Deserializer<'de>,
+    {
+        let buf = String::deserialize(deserializer)?;
 
-    match FlatpakSourceType::from_string(&buf) {
-        Ok(b) => Ok(Some(b)),
-        Err(e) => Err(e).map_err(serde::de::Error::custom),
+        match FlatpakSourceType::from_string(&buf) {
+            Ok(b) => Ok(Some(b)),
+            Err(e) => Err(e).map_err(serde::de::Error::custom),
+        }
     }
 }
 
@@ -186,8 +187,8 @@ pub enum FlatpakSourceItem {
 /// distinguished by the type property.
 pub struct FlatpakSource {
     /// Defines the type of the source description.
-    #[serde(deserialize_with = "crate::source::deserialize_from_string")]
-    #[serde(serialize_with = "crate::source::serialize_to_string")]
+    #[serde(deserialize_with = "crate::source::FlatpakSourceType::deserialization")]
+    #[serde(serialize_with = "crate::source::FlatpakSourceType::serialize")]
     #[serde(skip_serializing_if = "Option::is_none")]
     #[serde(default)]
     pub r#type: Option<FlatpakSourceType>,
