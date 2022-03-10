@@ -20,28 +20,6 @@ pub enum FlatpakBuildSystem {
     Simple,
 }
 
-pub fn serialize_to_string<S>(x: &Option<FlatpakBuildSystem>, s: S) -> Result<S::Ok, S::Error>
-where
-    S: Serializer,
-{
-    if let Some(build_system) = x {
-        return s.serialize_str(&build_system.to_string());
-    }
-    panic!("This should not happen.");
-}
-
-pub fn deserialize_from_string<'de, D>(deserializer: D) -> Result<Option<FlatpakBuildSystem>, D::Error>
-where
-    D: Deserializer<'de>,
-{
-    let buf = String::deserialize(deserializer)?;
-
-    match FlatpakBuildSystem::from_string(&buf) {
-        Ok(b) => Ok(Some(b)),
-        Err(e) => Err(e).map_err(serde::de::Error::custom),
-    }
-}
-
 impl Default for FlatpakBuildSystem {
     fn default() -> Self {
         FlatpakBuildSystem::Autotools
@@ -58,6 +36,7 @@ impl FlatpakBuildSystem {
             FlatpakBuildSystem::Simple => SIMPLE.to_string(),
         }
     }
+
     pub fn from_string(build_sys: &str) -> Result<FlatpakBuildSystem, String> {
         if build_sys == AUTOTOOLS {
             return Ok(FlatpakBuildSystem::Autotools);
@@ -78,5 +57,27 @@ impl FlatpakBuildSystem {
             return Ok(FlatpakBuildSystem::Simple);
         }
         Err(format!("Invalid build system {}.", build_sys))
+    }
+
+    pub fn serialize<S>(x: &Option<FlatpakBuildSystem>, s: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        if let Some(build_system) = x {
+            return s.serialize_str(&build_system.to_string());
+        }
+        panic!("This should not happen.");
+    }
+
+    pub fn deserialize<'de, D>(deserializer: D) -> Result<Option<FlatpakBuildSystem>, D::Error>
+    where
+        D: Deserializer<'de>,
+    {
+        let buf = String::deserialize(deserializer)?;
+
+        match FlatpakBuildSystem::from_string(&buf) {
+            Ok(b) => Ok(Some(b)),
+            Err(e) => Err(e).map_err(serde::de::Error::custom),
+        }
     }
 }

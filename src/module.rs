@@ -94,8 +94,8 @@ pub struct FlatpakModule {
     pub cmake: Option<bool>,
 
     /// Build system to use.
-    #[serde(deserialize_with = "crate::build_system::deserialize_from_string")]
-    #[serde(serialize_with = "crate::build_system::serialize_to_string")]
+    #[serde(deserialize_with = "crate::build_system::FlatpakBuildSystem::deserialize")]
+    #[serde(serialize_with = "crate::build_system::FlatpakBuildSystem::serialize")]
     #[serde(skip_serializing_if = "Option::is_none")]
     pub buildsystem: Option<FlatpakBuildSystem>,
 
