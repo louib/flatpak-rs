@@ -134,26 +134,26 @@ impl FlatpakArchiveType {
         }
         None
     }
-}
 
-pub fn serialize_to_string<S>(x: &Option<FlatpakArchiveType>, s: S) -> Result<S::Ok, S::Error>
-where
-    S: Serializer,
-{
-    if let Some(build_system) = x {
-        return s.serialize_str(&build_system.to_string());
+    pub fn serialize<S>(x: &Option<FlatpakArchiveType>, s: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        if let Some(build_system) = x {
+            return s.serialize_str(&build_system.to_string());
+        }
+        panic!("This should not happen.");
     }
-    panic!("This should not happen.");
-}
 
-pub fn deserialize_from_string<'de, D>(deserializer: D) -> Result<Option<FlatpakArchiveType>, D::Error>
-where
-    D: Deserializer<'de>,
-{
-    let buf = String::deserialize(deserializer)?;
+    pub fn deserialize<'de, D>(deserializer: D) -> Result<Option<FlatpakArchiveType>, D::Error>
+    where
+        D: Deserializer<'de>,
+    {
+        let buf = String::deserialize(deserializer)?;
 
-    match FlatpakArchiveType::from_string(&buf) {
-        Ok(b) => Ok(Some(b)),
-        Err(e) => Err(e).map_err(serde::de::Error::custom),
+        match FlatpakArchiveType::from_string(&buf) {
+            Ok(b) => Ok(Some(b)),
+            Err(e) => Err(e).map_err(serde::de::Error::custom),
+        }
     }
 }

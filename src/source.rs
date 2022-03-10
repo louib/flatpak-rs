@@ -266,8 +266,8 @@ pub struct FlatpakSource {
 
     /// The type of archive if it cannot be guessed from the path.
     /// types: archive
-    #[serde(deserialize_with = "crate::archive::deserialize_from_string")]
-    #[serde(serialize_with = "crate::archive::serialize_to_string")]
+    #[serde(deserialize_with = "crate::archive::FlatpakArchiveType::deserialize")]
+    #[serde(serialize_with = "crate::archive::FlatpakArchiveType::serialize")]
     #[serde(skip_serializing_if = "Option::is_none")]
     #[serde(default)]
     pub archive_type: Option<FlatpakArchiveType>,
