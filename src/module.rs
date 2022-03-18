@@ -284,6 +284,15 @@ impl FlatpakModule {
                 return Err("Sources provided as strings cannot be URLs!".to_string());
             }
         }
+        for source in &flatpak_module.sources {
+            let source_description = match source {
+                FlatpakSourceItem::Path(_) => continue,
+                FlatpakSourceItem::Description(d) => d,
+            };
+            if let Err(e) = source_description.is_valid() {
+                return Err(e);
+            }
+        }
 
         Ok(flatpak_module)
     }
@@ -652,6 +661,19 @@ mod tests {
               - "https://github.com/user/repo"
         "###;
         assert!(FlatpakModule::parse(FlatpakManifestFormat::YAML, helm_file,).is_err())
+    }
+
+    #[test]
+    pub fn test_parse_invalid_source() {
+        let file = r###"
+            name: wps
+            sources:
+              - path: "^empty\\.c$"
+                isGenerated: false
+                sourceGroupName: "Source Files",
+                compileGroupLanguage: C
+        "###;
+        assert!(FlatpakModule::parse(FlatpakManifestFormat::YAML, file).is_err())
     }
 
     #[test]
