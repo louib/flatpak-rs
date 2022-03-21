@@ -611,6 +611,30 @@ mod tests {
     }
 
     #[test]
+    #[ignore]
+    pub fn test_parse_builddir() {
+        // FIXME why is this failing?
+        // yes should be a valid boolean value, no?
+        let module_manifest = r###"
+            name: fmt
+            buildsystem: cmake-ninja
+            builddir: yes
+            config-opts:
+              - "-DFMT_TEST=OFF"
+            sources:
+              - type: git
+                url: https://github.com/fmtlib/fmt.git
+                commit: 561834650aa77ba37b15f7e5c9d5726be5127df9
+        "###;
+        match FlatpakModule::parse(FlatpakManifestFormat::YAML, module_manifest) {
+            Err(e) => std::panic::panic_any(e),
+            Ok(module) => {
+                assert_eq!(module.name, "fmt");
+            }
+        }
+    }
+
+    #[test]
     pub fn test_parse_extra_data() {
         let module_manifest = r###"
             name: wps
