@@ -11,6 +11,7 @@ pub const SIMPLE: &str = "simple";
 #[derive(Deserialize)]
 #[derive(Debug)]
 #[derive(Hash)]
+#[derive(PartialEq)]
 pub enum FlatpakBuildSystem {
     Autotools,
     CMake,
