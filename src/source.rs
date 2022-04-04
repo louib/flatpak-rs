@@ -406,21 +406,10 @@ impl FlatpakSource {
     }
 
     pub fn parse(format: FlatpakManifestFormat, manifest_content: &str) -> Result<FlatpakSource, String> {
-        let flatpak_source: FlatpakSource = match &format {
-            FlatpakManifestFormat::YAML => match serde_yaml::from_str(&manifest_content) {
-                Ok(m) => m,
-                Err(e) => {
-                    return Err(format!("Failed to parse the Flatpak source manifest: {}.", e));
-                }
-            },
-            FlatpakManifestFormat::JSON => {
-                let json_content_without_comments = crate::utils::remove_comments_from_json(manifest_content);
-                match serde_json::from_str(&json_content_without_comments) {
-                    Ok(m) => m,
-                    Err(e) => {
-                        return Err(format!("Failed to parse the Flatpak source manifest: {}.", e));
-                    }
-                }
+        let flatpak_source: FlatpakSource = match format.parse(manifest_content) {
+            Ok(m) => m,
+            Err(e) => {
+                return Err(format!("Failed to parse the Flatpak source manifest: {}.", e));
             }
         };
 
@@ -434,21 +423,10 @@ impl FlatpakSource {
         format: FlatpakManifestFormat,
         manifest_content: &str,
     ) -> Result<Vec<FlatpakSource>, String> {
-        let flatpak_sources: Vec<FlatpakSource> = match &format {
-            FlatpakManifestFormat::YAML => match serde_yaml::from_str(&manifest_content) {
-                Ok(m) => m,
-                Err(e) => {
-                    return Err(format!("Failed to parse the Flatpak source manifest: {}.", e));
-                }
-            },
-            FlatpakManifestFormat::JSON => {
-                let json_content_without_comments = crate::utils::remove_comments_from_json(manifest_content);
-                match serde_json::from_str(&json_content_without_comments) {
-                    Ok(m) => m,
-                    Err(e) => {
-                        return Err(format!("Failed to parse the Flatpak source manifest: {}.", e));
-                    }
-                }
+        let flatpak_sources: Vec<FlatpakSource> = match format.parse(manifest_content) {
+            Ok(m) => m,
+            Err(e) => {
+                return Err(format!("Failed to parse the Flatpak source manifest: {}.", e));
             }
         };
 

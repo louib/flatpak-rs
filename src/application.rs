@@ -250,27 +250,13 @@ impl FlatpakApplication {
     }
 
     pub fn parse(format: FlatpakManifestFormat, manifest_content: &str) -> Result<FlatpakApplication, String> {
-        let mut flatpak_manifest: FlatpakApplication = match &format {
-            FlatpakManifestFormat::YAML => match serde_yaml::from_str(&manifest_content) {
-                Ok(m) => m,
-                Err(e) => {
-                    return Err(format!(
-                        "Failed to parse the Flatpak application manifest: {}.",
-                        e
-                    ));
-                }
-            },
-            FlatpakManifestFormat::JSON => {
-                let json_content_without_comments = crate::utils::remove_comments_from_json(manifest_content);
-                match serde_json::from_str(&json_content_without_comments) {
-                    Ok(m) => m,
-                    Err(e) => {
-                        return Err(format!(
-                            "Failed to parse the Flatpak application manifest: {}.",
-                            e
-                        ));
-                    }
-                }
+        let mut flatpak_manifest: FlatpakApplication = match format.parse(manifest_content) {
+            Ok(m) => m,
+            Err(e) => {
+                return Err(format!(
+                    "Failed to parse the Flatpak application manifest: {}.",
+                    e
+                ));
             }
         };
         flatpak_manifest.format = format;
