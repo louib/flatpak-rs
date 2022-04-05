@@ -48,4 +48,18 @@ impl FlatpakManifestFormat {
             FlatpakManifestFormat::TOML => toml::from_str::<T>(content).map_err(|e| e.to_string()),
         }
     }
+
+    pub fn dump<T>(&self, manifest: &T) -> Result<String, String>
+    where
+        T: Serialize,
+    {
+        match self {
+            FlatpakManifestFormat::YAML => serde_yaml::to_string::<T>(manifest).map_err(|e| e.to_string()),
+            FlatpakManifestFormat::JSON => {
+                serde_json::to_string_pretty::<T>(manifest).map_err(|e| e.to_string())
+            }
+            #[cfg(feature = "toml")]
+            FlatpakManifestFormat::TOML => toml::to_string::<T>(manifest).map_err(|e| e.to_string()),
+        }
+    }
 }

@@ -287,11 +287,10 @@ impl FlatpakModule {
     }
 
     pub fn dump(&self) -> Result<String, String> {
-        // FIXME this should handle the other manifest formats!
-        return match serde_yaml::to_string(&self) {
+        match self.format.dump(self) {
             Ok(d) => Ok(d),
-            Err(e) => Err(format!("Failed to dump the Flatpak manifest: {}.", e)),
-        };
+            Err(e) => return Err(format!("Failed to dump the Flatpak manifest: {}.", e)),
+        }
     }
 
     pub fn file_path_matches(path: &str) -> bool {

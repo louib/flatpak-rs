@@ -287,21 +287,10 @@ impl FlatpakApplication {
     }
 
     pub fn dump(&self) -> Result<String, String> {
-        if let FlatpakManifestFormat::JSON = self.format {
-            return match serde_json::to_string_pretty(&self) {
-                Ok(d) => Ok(d),
-                Err(e) => return Err(format!("Failed to dump the Flatpak manifest: {}.", e)),
-            };
+        match self.format.dump(self) {
+            Ok(d) => Ok(d),
+            Err(e) => return Err(format!("Failed to dump the Flatpak manifest: {}.", e)),
         }
-
-        if let FlatpakManifestFormat::YAML = self.format {
-            return match serde_yaml::to_string(&self) {
-                Ok(d) => Ok(d),
-                Err(e) => return Err(format!("Failed to dump the Flatpak manifest: {}.", e)),
-            };
-        }
-
-        Err(format!("Invalid format for Flatpak manifest."))
     }
 
     pub fn get_all_module_urls(&self) -> Vec<String> {
