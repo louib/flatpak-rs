@@ -519,7 +519,7 @@ pub struct FlatpakDataCheckerConfig {
     pub is_main_source: Option<bool>,
 
     /// The constraints placed on version checking.
-    /// See https://github.com/flathub/flatpak-external-data-checker#version-constraining
+    /// See <https://github.com/flathub/flatpak-external-data-checker#version-constraining>
     #[serde(skip_serializing_if = "BTreeMap::is_empty")]
     pub versions: BTreeMap<String, String>,
 }
