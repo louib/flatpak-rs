@@ -1,3 +1,4 @@
+use std::collections::BTreeMap;
 use std::fs;
 use std::path;
 
@@ -516,6 +517,11 @@ pub struct FlatpakDataCheckerConfig {
 
     #[serde(skip_serializing_if = "Option::is_none")]
     pub is_main_source: Option<bool>,
+
+    /// The constraints placed on version checking.
+    /// See https://github.com/flathub/flatpak-external-data-checker#version-constraining
+    #[serde(skip_serializing_if = "BTreeMap::is_empty")]
+    pub versions: BTreeMap<String, String>,
 }
 
 #[cfg(test)]
