@@ -1,6 +1,8 @@
 use std::collections::BTreeMap;
+use std::ffi::OsStr;
 use std::fs;
 use std::path;
+use std::process::Command;
 
 use serde::{Deserialize, Serialize};
 
@@ -438,6 +440,122 @@ impl FlatpakModule {
             }
         }
         false
+    }
+
+    /// Gets the build commands associated with a module.
+    pub fn get_commands<I, S>(
+        &self,
+        args: I,
+        reconfigure: bool,
+        root_path: &str,
+        build_path: &str,
+        out_path: Option<&str>,
+        num_cpus: i64,
+    ) -> Vec<Command>
+    where
+        I: IntoIterator<Item = S>,
+        S: AsRef<OsStr>,
+    {
+        let args: Vec<_> = args.into_iter().collect();
+
+        let out_path = out_path.unwrap_or("/app");
+
+        match self.buildsystem.as_ref().unwrap() {
+            FlatpakBuildSystem::Autotools => {
+                let mut commands = Vec::new();
+
+                if !reconfigure {
+                    let mut cmd = Command::new("./configure");
+                    cmd.arg(format!("--prefix={}", out_path));
+                    cmd.args(self.config_opts.clone());
+                    cmd.current_dir(root_path);
+                    commands.push(cmd);
+                }
+
+                let mut cmd = Command::new("make");
+                cmd.args(&["-p", "-n", "-s"]);
+                cmd.current_dir(root_path);
+                commands.push(cmd);
+
+                let mut cmd = Command::new("make");
+                cmd.arg("V=0");
+                cmd.arg(format!("-j{}", num_cpus));
+                cmd.arg("install");
+                cmd.args(args);
+                cmd.current_dir(root_path);
+                commands.push(cmd);
+
+                commands
+            }
+            FlatpakBuildSystem::CMake | FlatpakBuildSystem::CMakeNinja => {
+                let mut commands = Vec::new();
+
+                if !reconfigure {
+                    let mut cmd = Command::new("mkdir");
+                    cmd.arg("-p").arg(build_path);
+                    commands.push(cmd);
+
+                    let mut cmd = Command::new("cmake");
+                    cmd.args(&["-G", "Ninja", "..", "."]);
+                    cmd.arg("-DCMAKE_EXPORT_COMPILE_COMMANDS=1");
+                    cmd.arg("-DCMAKE_BUILD_TYPE=RelWithDebInfo");
+                    cmd.arg(format!("-DCMAKE_INSTALL_PREFIX={}", out_path));
+                    cmd.args(self.config_opts.clone());
+                    cmd.current_dir(build_path);
+                    commands.push(cmd);
+                }
+
+                let mut cmd = Command::new("ninja");
+                cmd.current_dir(build_path);
+                commands.push(cmd);
+
+                let mut cmd = Command::new("ninja");
+                cmd.arg("install");
+                cmd.current_dir(build_path);
+                commands.push(cmd);
+
+                commands
+            }
+            FlatpakBuildSystem::Meson => {
+                let mut commands = Vec::new();
+
+                if !reconfigure {
+                    let mut cmd = Command::new("meson");
+                    cmd.arg(format!("--prefix={}", out_path));
+                    cmd.arg(build_path);
+                    cmd.args(self.config_opts.clone());
+                    cmd.current_dir(root_path);
+                    commands.push(cmd);
+                }
+
+                let mut cmd = Command::new("ninja");
+                cmd.arg("-C");
+                cmd.arg(build_path);
+                cmd.current_dir(root_path);
+                commands.push(cmd);
+
+                let mut cmd = Command::new("meson");
+                cmd.args(args);
+                cmd.args(&["install", "-C"]);
+                cmd.arg(build_path);
+                cmd.current_dir(root_path);
+                commands.push(cmd);
+
+                commands
+            }
+            FlatpakBuildSystem::QMake => panic!("Not implemented yet."),
+            FlatpakBuildSystem::Simple => self
+                .build_commands
+                .iter()
+                .map(|step| {
+                    let mut cmd = Command::new("/bin/sh");
+                    cmd.arg("-c");
+                    cmd.arg(step);
+                    cmd.current_dir(root_path);
+                    cmd
+                })
+                .collect(),
+        }
     }
 }
 
