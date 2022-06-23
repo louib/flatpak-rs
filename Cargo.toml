@@ -24,10 +24,11 @@ include = [
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [features]
-default = ["extended_build_systems"]
+default = ["extended_build_systems", "extended_mirror_urls_support"]
 
 derive = ["toml"]
 extended_build_systems = []
+extended_mirror_urls_support = []
 
 [dependencies]
 serde = { version = "1.0", features = ["derive"] }

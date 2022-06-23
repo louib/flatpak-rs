@@ -75,11 +75,19 @@ impl FlatpakSourceType {
 
     /// Determines if mirror urls can be used with that source type.
     pub fn supports_mirror_urls(&self) -> bool {
-        // FIXME why are mirror urls not supported for types git, svn and bzr?
         if *self == FlatpakSourceType::Archive {
             return true;
         }
         if *self == FlatpakSourceType::File {
+            return true;
+        }
+        /// This is not supported by flatpak-builder by default. This might
+        /// be a simple mistake though, so might be worth it to reasses later.
+        #[cfg(feature = "extended_mirror_urls_support")]
+        if *self == FlatpakSourceType::Git
+            || *self == FlatpakSourceType::Svn
+            || *self == FlatpakSourceType::Bazaar
+        {
             return true;
         }
         false
