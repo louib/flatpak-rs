@@ -14,11 +14,11 @@ pub fn is_reverse_dns(path: &str) -> bool {
 
 /// Transforms a URL into its reverse DNS equivalent.
 ///```
-///let mut reverse_dns = flatpak_rs::reverse_dns::from_url("https://github.com/louib/flatpak-review.git");
-///assert_eq!(reverse_dns, "com.github.louib.flatpak-review");
+///let mut reverse_dns = flatpak_rs::reverse_dns::from_url("https://github.com/louib/flatpak-rs.git");
+///assert_eq!(reverse_dns, "com.github.louib.flatpak-rs");
 ///reverse_dns =
-///flatpak_rs::reverse_dns::from_url("https://gitlab.com/louib/flatpak-review.git");
-///assert_eq!(reverse_dns, "com.gitlab.louib.flatpak-review");
+///flatpak_rs::reverse_dns::from_url("https://gitlab.com/louib/flatpak-rs.git");
+///assert_eq!(reverse_dns, "com.gitlab.louib.flatpak-rs");
 ///reverse_dns = flatpak_rs::reverse_dns::from_url("https://git.savannah.gnu.org/cgit/make.git");
 ///assert_eq!(reverse_dns, "org.gnu.savannah.git.cgit.make");
 ///reverse_dns = flatpak_rs::reverse_dns::from_url("https://gitlab.freedesktop.org/xorg/lib/libxmu");
