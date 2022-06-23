@@ -9,4 +9,5 @@ pub mod filename;
 pub mod format;
 pub mod manifest_type;
 pub mod module;
+pub mod reverse_dns;
 pub mod source;

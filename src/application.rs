@@ -246,7 +246,7 @@ impl FlatpakApplication {
     }
 
     pub fn file_path_matches(path: &str) -> bool {
-        crate::filename::is_reverse_dns(&path)
+        crate::reverse_dns::is_reverse_dns(&path)
     }
 
     pub fn parse(format: FlatpakManifestFormat, manifest_content: &str) -> Result<FlatpakApplication, String> {
