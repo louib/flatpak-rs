@@ -166,17 +166,17 @@ impl FlatpakArchiveType {
 }
 
 ///```
-///let version = flatpak_rs::archive::get_project_name_from_url(
+///let project_name = flatpak_rs::archive::get_project_name_from_url(
 ///  "https://download-fallback.gnome.org/sources/libgda/5.2/libgda-5.2.9.tar.xz"
 ///);
-///assert!(version.is_some());
-///assert_eq!(version.unwrap(), "libgda");
+///assert!(project_name.is_some());
+///assert_eq!(project_name.unwrap(), "libgda");
 ///
-///let version = flatpak_rs::archive::get_project_name_from_url(
+///let project_name = flatpak_rs::archive::get_project_name_from_url(
 ///  "https://download.gnome.org/core/3.28/3.28.2/sources/libgsf-1.14.43.tar.xz"
 ///);
-///assert!(version.is_some());
-///assert_eq!(version.unwrap(), "libgsf");
+///assert!(project_name.is_some());
+///assert_eq!(project_name.unwrap(), "libgsf");
 ///```
 pub fn get_project_name_from_url(archive_url: &str) -> Option<String> {
     let archive_filename = archive_url.split("/").last().unwrap();
