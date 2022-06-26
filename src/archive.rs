@@ -1,5 +1,12 @@
 use serde::{Deserialize, Deserializer, Serializer};
 
+use lazy_static::lazy_static;
+use regex::Regex;
+
+lazy_static! {
+    static ref PROJECT_NAME_REGEX: Regex = Regex::new(r"([0-9a-zA-Z_-]+)-[0-9]+.[0-9]+.[0-9]+").unwrap();
+}
+
 pub const RPM: &str = "rpm";
 pub const TAR: &str = "tar";
 pub const TAR_GZIP: &str = "tar-gzip";
@@ -156,4 +163,29 @@ impl FlatpakArchiveType {
             Err(e) => Err(e).map_err(serde::de::Error::custom),
         }
     }
+}
+
+///```
+///let version = flatpak_rs::archive::get_project_name_from_url(
+///  "https://download-fallback.gnome.org/sources/libgda/5.2/libgda-5.2.9.tar.xz"
+///);
+///assert!(version.is_some());
+///assert_eq!(version.unwrap(), "libgda");
+///
+///let version = flatpak_rs::archive::get_project_name_from_url(
+///  "https://download.gnome.org/core/3.28/3.28.2/sources/libgsf-1.14.43.tar.xz"
+///);
+///assert!(version.is_some());
+///assert_eq!(version.unwrap(), "libgsf");
+///```
+pub fn get_project_name_from_url(archive_url: &str) -> Option<String> {
+    let archive_filename = archive_url.split("/").last().unwrap();
+    let captured_groups = match PROJECT_NAME_REGEX.captures(archive_filename) {
+        Some(g) => g,
+        None => return None,
+    };
+    if captured_groups.len() == 0 {
+        return None;
+    }
+    return Some(captured_groups[1].to_string());
 }
