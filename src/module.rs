@@ -183,11 +183,11 @@ impl FlatpakModule {
         return false;
     }
 
-    pub fn get_all_mirror_urls(&self) -> Vec<String> {
-        let mut all_urls = vec![];
+    pub fn get_mirror_urls(&self) -> Vec<String> {
+        let mut mirror_urls = vec![];
         for module in &self.modules {
             if let FlatpakModuleItem::Description(module_description) = module {
-                all_urls.append(&mut module_description.get_all_mirror_urls());
+                mirror_urls.append(&mut module_description.get_mirror_urls());
             }
         }
         for source in &self.sources {
@@ -196,10 +196,10 @@ impl FlatpakModule {
                 FlatpakSourceItem::Path(_p) => continue,
             };
             for url in source_description.get_mirror_urls() {
-                all_urls.push(url.to_string());
+                mirror_urls.push(url.to_string());
             }
         }
-        all_urls
+        mirror_urls
     }
 
     pub fn get_buildsystem(&self) -> Option<String> {
