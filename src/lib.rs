@@ -3,6 +3,7 @@
 mod utils;
 
 pub mod application;
+pub mod architecture;
 pub mod archive;
 pub mod build_system;
 pub mod filename;
