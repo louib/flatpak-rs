@@ -104,6 +104,14 @@ pub struct FlatpakApplication {
     #[serde(skip_serializing_if = "Vec::is_empty")]
     pub base_extensions: Vec<String>,
 
+    /// Separate out locale files and translations to an extension runtime. Defaults to true.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub separate_locales: Option<bool>,
+
+    /// Run appstream-compose during cleanup phase. Defaults to true.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub appstream_compose: Option<bool>,
+
     /// Inherit these extra extensions points from the base application or
     /// sdk when finishing the build.
     #[serde(skip_serializing_if = "Vec::is_empty")]
@@ -852,6 +860,8 @@ mod tests {
             Ok(app) => {
                 assert_eq!(app.id, "org.freedesktop.Platform.Icontheme.Paper");
                 assert_eq!(app.get_id(), "org.freedesktop.Platform.Icontheme.Paper");
+                assert_eq!(app.separate_locales, Some(false));
+                assert_eq!(app.appstream_compose, Some(false));
             }
         }
     }
