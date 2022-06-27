@@ -589,6 +589,27 @@ impl FlatpakModule {
 #[derive(Deserialize)]
 #[derive(Serialize)]
 #[derive(Debug)]
+#[derive(Hash)]
+#[serde(untagged)]
+/// This is a dictionary defining environment variables to be set during the build.
+/// Elements in this override the properties that set the environment, like
+/// cflags and ldflags. Keys with a null value unset the corresponding variable.
+/// FIXME the doc says this should be an object, but when defined in the modules,
+/// it is actually an array with values like PPC_CONFIG_PATH=/app/etc.
+pub enum FlatpakBuildOptionsEnv {
+    Dict(BTreeMap<String, String>),
+    Array(Vec<String>),
+}
+impl Default for FlatpakBuildOptionsEnv {
+    fn default() -> Self {
+        FlatpakBuildOptionsEnv::Array(vec![])
+    }
+}
+
+#[derive(Clone)]
+#[derive(Deserialize)]
+#[derive(Serialize)]
+#[derive(Debug)]
 #[derive(Default)]
 #[derive(Hash)]
 #[serde(rename_all = "kebab-case")]
@@ -666,12 +687,8 @@ pub struct FlatpakBuildOptions {
     #[serde(skip_serializing_if = "String::is_empty")]
     pub prepend_pkg_config_path: String,
 
-    // This is a dictionary defining environment variables to be set during the build.
-    // Elements in this override the properties that set the environment, like
-    // cflags and ldflags. Keys with a null value unset the corresponding variable.
-    // FIXME the doc says this should be an object, but when defined in the modules,
-    // it is actually an array with values like PPC_CONFIG_PATH=/app/etc.
-    // pub env: BTreeMap<String, String>,
+    pub env: FlatpakBuildOptionsEnv,
+
     /// This is an array containing extra options to pass to flatpak build.
     #[serde(skip_serializing_if = "Vec::is_empty")]
     pub build_args: Vec<String>,
@@ -727,6 +744,7 @@ mod tests {
                cxxflags: "-O2 -g"
                env:
                    V: "1"
+                   X: "2"
                arch:
                    x86_64:
                        cflags: "-O3 -g"
@@ -739,6 +757,47 @@ mod tests {
             Err(e) => std::panic::panic_any(e),
             Ok(module) => {
                 assert_eq!(module.name, "flatpak-rs");
+                assert!(module.build_options.is_some());
+                let env: BTreeMap<String, String> = match module.build_options.unwrap().env {
+                    FlatpakBuildOptionsEnv::Dict(env) => env,
+                    FlatpakBuildOptionsEnv::Array(env) => panic!("Env should be a dict."),
+                };
+                assert_eq!(env.get("V").unwrap(), "1");
+                assert_eq!(env.get("X").unwrap(), "2");
+            }
+        }
+    }
+
+    #[test]
+    pub fn test_parse_build_options_env() {
+        let module_manifest = r###"
+            name: "flatpak-rs"
+            buildsystem: simple
+            cleanup: [ "*" ]
+            build-options:
+               cflags: "-O2 -g"
+               cxxflags: "-O2 -g"
+               env:
+                   - "V=1"
+                   - "Y=2"
+               arch:
+                   x86_64:
+                       cflags: "-O3 -g"
+            config-opts: []
+            sources:
+              -
+                "shared-modules/linux-audio/lv2.json"
+        "###;
+        match FlatpakModule::parse(FlatpakManifestFormat::YAML, module_manifest) {
+            Err(e) => std::panic::panic_any(e),
+            Ok(module) => {
+                assert_eq!(module.name, "flatpak-rs");
+                assert!(module.build_options.is_some());
+                let env: Vec<String> = match module.build_options.unwrap().env {
+                    FlatpakBuildOptionsEnv::Array(env) => env,
+                    FlatpakBuildOptionsEnv::Dict(env) => panic!("Env should be an array."),
+                };
+                assert_eq!(env, vec!["V=1", "Y=2"]);
             }
         }
     }
