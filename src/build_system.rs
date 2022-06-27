@@ -35,7 +35,7 @@ pub enum FlatpakBuildSystem {
 
 impl Default for FlatpakBuildSystem {
     fn default() -> Self {
-        FlatpakBuildSystem::Autotools
+        FlatpakBuildSystem::Simple
     }
 }
 impl FlatpakBuildSystem {

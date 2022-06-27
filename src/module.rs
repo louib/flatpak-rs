@@ -481,7 +481,12 @@ impl FlatpakModule {
 
         let out_path = out_path.unwrap_or("/app");
 
-        match self.buildsystem.as_ref().unwrap() {
+        let build_system = self
+            .buildsystem
+            .to_owned()
+            .unwrap_or(FlatpakBuildSystem::default());
+
+        match build_system {
             FlatpakBuildSystem::Autotools => {
                 let mut commands = Vec::new();
 
