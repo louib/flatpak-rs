@@ -301,7 +301,21 @@ impl FlatpakApplication {
         }
     }
 
-    pub fn get_all_module_urls(&self) -> Vec<String> {
+    /// Gets all the main source URLs included in the manifest.
+    /// This will not include the mirror URLs!
+    pub fn get_urls(&self) -> Vec<String> {
+        let mut urls = vec![];
+        for module in &self.modules {
+            let module: &FlatpakModule = match module {
+                FlatpakModuleItem::Path(_) => continue,
+                FlatpakModuleItem::Description(m) => &m,
+            };
+            urls.append(&mut module.get_urls());
+        }
+        urls
+    }
+
+    pub fn get_all_urls(&self) -> Vec<String> {
         let mut all_urls = vec![];
         for module in &self.modules {
             let module: &FlatpakModule = match module {

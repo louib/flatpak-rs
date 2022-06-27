@@ -195,7 +195,7 @@ impl FlatpakModule {
                 FlatpakSourceItem::Description(d) => d,
                 FlatpakSourceItem::Path(_p) => continue,
             };
-            for url in source_description.get_all_mirror_urls() {
+            for url in source_description.get_mirror_urls() {
                 all_urls.push(url.to_string());
             }
         }
@@ -299,6 +299,27 @@ impl FlatpakModule {
         // The file path for a module is not necessarily in reverse DNS, so we can only test
         // for the extension of the file.
         crate::filename::extension_is_valid(path)
+    }
+
+    /// Gets all the main URLs of the sources in the module.
+    /// This will not include the mirror URLs!
+    pub fn get_urls(&self) -> Vec<String> {
+        let mut urls = vec![];
+        for module in &self.modules {
+            if let FlatpakModuleItem::Description(module_description) = module {
+                urls.append(&mut module_description.get_urls());
+            }
+        }
+        for source in &self.sources {
+            let source_description = match source {
+                FlatpakSourceItem::Description(d) => d,
+                FlatpakSourceItem::Path(_p) => continue,
+            };
+            if let Some(url) = source_description.get_url() {
+                urls.push(url);
+            }
+        }
+        urls
     }
 
     pub fn get_all_urls(&self) -> Vec<String> {
