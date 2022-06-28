@@ -301,13 +301,17 @@ impl FlatpakModule {
         crate::filename::extension_is_valid(path)
     }
 
-    /// Gets all the main URLs of the sources in the module.
-    /// This will not include the mirror URLs!
-    pub fn get_urls(&self) -> Vec<String> {
+    pub fn get_urls(
+        &self,
+        include_mirror_urls: bool,
+        include_source_types: Option<Vec<FlatpakSourceType>>,
+    ) -> Vec<String> {
         let mut urls = vec![];
         for module in &self.modules {
             if let FlatpakModuleItem::Description(module_description) = module {
-                urls.append(&mut module_description.get_urls());
+                urls.append(
+                    &mut module_description.get_urls(include_mirror_urls, include_source_types.clone()),
+                );
             }
         }
         for source in &self.sources {
@@ -315,71 +319,11 @@ impl FlatpakModule {
                 FlatpakSourceItem::Description(d) => d,
                 FlatpakSourceItem::Path(_p) => continue,
             };
-            if let Some(url) = source_description.get_url() {
+            for url in source_description.get_urls(include_mirror_urls, include_source_types.clone()) {
                 urls.push(url);
             }
         }
         urls
-    }
-
-    pub fn get_all_urls(&self) -> Vec<String> {
-        let mut all_urls = vec![];
-        for module in &self.modules {
-            if let FlatpakModuleItem::Description(module_description) = module {
-                all_urls.append(&mut module_description.get_all_urls());
-            }
-        }
-        for source in &self.sources {
-            let source_description = match source {
-                FlatpakSourceItem::Description(d) => d,
-                FlatpakSourceItem::Path(_p) => continue,
-            };
-            for url in source_description.get_all_urls() {
-                all_urls.push(url);
-            }
-        }
-        all_urls
-    }
-
-    pub fn get_all_archive_urls(&self) -> Vec<String> {
-        let mut all_archive_urls = vec![];
-        for source in &self.sources {
-            let source_description = match source {
-                FlatpakSourceItem::Description(d) => d,
-                FlatpakSourceItem::Path(_p) => continue,
-            };
-            if source_description.get_type() != Some(FlatpakSourceType::Archive) {
-                continue;
-            }
-
-            let archive_url = match &source_description.url {
-                Some(u) => u,
-                None => continue,
-            };
-            all_archive_urls.push(archive_url.to_string());
-        }
-        all_archive_urls
-    }
-
-    pub fn get_all_git_urls(&self) -> Vec<String> {
-        let mut all_git_urls = vec![];
-        for source in &self.sources {
-            let source_description = match source {
-                FlatpakSourceItem::Description(d) => d,
-                FlatpakSourceItem::Path(_p) => continue,
-            };
-            if source_description.get_type() != Some(FlatpakSourceType::Git) {
-                continue;
-            }
-
-            let git_url = match &source_description.url {
-                Some(u) => u,
-                None => continue,
-            };
-
-            all_git_urls.push(git_url.to_string());
-        }
-        all_git_urls
     }
 
     pub fn get_max_depth(&self) -> i32 {

@@ -465,12 +465,26 @@ impl FlatpakSource {
         }
     }
 
-    /// Returns both the main URL and the mirror URLs.
-    pub fn get_all_urls(&self) -> Vec<String> {
+    pub fn get_urls(
+        &self,
+        include_mirror_urls: bool,
+        include_source_types: Option<Vec<FlatpakSourceType>>,
+    ) -> Vec<String> {
+        if let Some(current_type) = self.get_type() {
+            if !include_source_types.unwrap_or(vec![]).contains(&current_type) {
+                return vec![];
+            }
+        }
+
         let mut response: Vec<String> = vec![];
         if let Some(url) = &self.url {
             response.push(url.to_string());
         }
+
+        if !include_mirror_urls {
+            return response;
+        }
+
         if let Some(urls) = &self.mirror_urls {
             for url in urls {
                 response.push(url.to_string());

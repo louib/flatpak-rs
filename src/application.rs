@@ -6,6 +6,7 @@ use serde::{Deserialize, Serialize};
 
 use crate::format::FlatpakManifestFormat;
 use crate::module::{FlatpakBuildOptions, FlatpakModule, FlatpakModuleItem};
+use crate::source::FlatpakSourceType;
 
 /// Main structure for a Flatpak application manifest.
 /// See `man flatpak-manifest` for the flatpak manifest specs.
@@ -301,30 +302,20 @@ impl FlatpakApplication {
         }
     }
 
-    /// Gets all the main source URLs included in the manifest.
-    /// This will not include the mirror URLs!
-    pub fn get_urls(&self) -> Vec<String> {
+    pub fn get_urls(
+        &self,
+        include_mirror_urls: bool,
+        include_source_types: Option<Vec<FlatpakSourceType>>,
+    ) -> Vec<String> {
         let mut urls = vec![];
         for module in &self.modules {
             let module: &FlatpakModule = match module {
                 FlatpakModuleItem::Path(_) => continue,
                 FlatpakModuleItem::Description(m) => &m,
             };
-            urls.append(&mut module.get_urls());
+            urls.append(&mut module.get_urls(include_mirror_urls, include_source_types.clone()));
         }
         urls
-    }
-
-    pub fn get_all_urls(&self) -> Vec<String> {
-        let mut all_urls = vec![];
-        for module in &self.modules {
-            let module: &FlatpakModule = match module {
-                FlatpakModuleItem::Path(_) => continue,
-                FlatpakModuleItem::Description(m) => &m,
-            };
-            all_urls.append(&mut module.get_all_urls());
-        }
-        all_urls
     }
 
     pub fn get_main_module_url(&self) -> Option<String> {
